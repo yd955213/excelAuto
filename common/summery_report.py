@@ -131,6 +131,6 @@ class SummeryReport:
 
 
 if __name__ == '__main__':
-    test = SummeryReport(get_abspath('data/cases/result_人脸设备接口.xlsx'))
+    test = SummeryReport(get_abspath('data/cases/人脸设备接口.xlsx'))
     print(test.get_summery_info())
     print(test.get_group_info())

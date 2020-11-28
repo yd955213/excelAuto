@@ -143,7 +143,7 @@ class ExcelTool:
 
 
 if __name__ == '__main__':
-    e = ExcelTool(get_abspath('data/cases/人脸设备接口.xlsx'))
+    e = ExcelTool(get_abspath('data/cases/人脸设备接口_1.xlsx'))
     li = e.read_all()
     print(len(li))
     # for a in li:

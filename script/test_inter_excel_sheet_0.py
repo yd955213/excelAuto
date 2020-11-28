@@ -11,6 +11,8 @@
 import os
 import allure
 import pytest
+
+from common.logger import logger
 from script.model import ModelScript
 
 
@@ -20,19 +22,28 @@ class TestDev01:
     test_scr = ModelScript()
     test_scr.excel.set_sheet(test_scr.sheet_names[0])
     lines = test_scr.excel.read_all()
-    # lines = []
+    lines_1 = []
 
     # def setup_class(self):
     #     self.test_scr = ModelScript()
     #     self.test_scr.excel.set_sheet(self.test_scr.sheet_names[0])
-    #     self.lines = self.test_scr.model_lines
-    #     print('self.lines =', self.lines)
-    #
-    # print(lines)
+    #     self.lines = self.test_scr.excel.read_all()
+    #     # print('self.lines =', self.lines)
+    #     lines = self.lines
 
-    @pytest.mark.parametrize("cases", lines)
+    for i in range(0, len(lines)):
+        lines_1.append(i)
+
+    @pytest.mark.parametrize("cases", lines_1)
     def test_l01(self, cases):
-        self.test_scr.model_case(cases=cases)
+        print(self.lines.__len__())
+        # for case in self.lines:
+        try:
+            self.test_scr.model_case(cases=self.lines[cases])
+            assert True
+        except Exception as e:
+            logger.debug(e)
+            assert False
 
     def teardown(self):
         self.test_scr.excel.save()

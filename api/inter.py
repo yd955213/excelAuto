@@ -88,10 +88,9 @@ class Inter:
             self.params = None
         else:
             try:
-                print('************************************************')
-                print(case[cell_config.get('params') - 1])
-                self.params = self._get_relations(self.params)
-                self.params = json.loads(case[cell_config.get('params') - 1])
+                # print('************************************************')
+                # print(case[cell_config.get('params') - 1])
+                self.params = json.loads(self._get_relations(case[cell_config.get('params') - 1]))
             except Exception as e:
                 logger.exception(traceback.format_exc())
                 self.params = None
@@ -114,6 +113,3 @@ if __name__ == '__main__':
     interface = Inter('DownloadAuthorityData')
     # print(interface.relation_dict.keys())
     # print(interface._get_relations('->杨党.jpg<-'))
-    params = '{"DeviceUniqueCode":"FC2C0A","TimeStamp":"2020-04-07 09:48:03","Data":{"UniqueCode":"92350231","PersonName":"zs","QueryCount":-30,"Page":1}}'
-    params = json.loads(params)
-    print(params)

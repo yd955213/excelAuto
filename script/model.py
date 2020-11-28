@@ -108,7 +108,7 @@ class ModelScript:
                 # 写测试结果 字体颜色绿色
                 self.excel.write(sheet_name=cases[-2], row=cases[-1], column=cell_config.get('status'),
                                  value='PASS', color='00FF00')
-                assert True
+                return True
             except Exception as e:
                 logger.error('断言接口是：{}'.format(e))
                 self.__step(assert_result=e, response_contain=response.text, url=self.my_inter.path,
@@ -119,10 +119,13 @@ class ModelScript:
                 # 写测试结果 字体颜色红色
                 self.excel.write(sheet_name=cases[-2], row=cases[-1], column=cell_config.get('status'),
                                  value='FAIL', color='FF0000')
-                assert False
+                allure.severity('critical')
+                return False
 
         else:
             self.my_method(self.my_inter.path)
             self.my_params(cases[cell_config.get('params') - 1])
             self.my_response('None')
-            assert False
+
+            allure.severity('blocker')
+            return False
