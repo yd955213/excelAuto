@@ -7,7 +7,7 @@
 @Author : yd
 @Version: 1.0
 @ToDo    : 常用全局变量
-    """
+"""
 import os
 import time
 
@@ -81,8 +81,7 @@ email_config = {'reportTitle': '人脸HTTP接口测试',
                 'mailFrom': '664720125@qq.com',
                 'senderNickName': 'yd',
                 'passWord': 'yjlsrkowzszfbbhc',
-                # 'mailTo': '664720125@qq.com',
-                'mailTo': '664720125@qq.com,1565890608@qq.com,1773087583@qq.com,457958791@qq.com,545476870@qq.com,2236807036@qq.com,670767661@qq.com,814491080@qq.com,9538631@qq.com,2586472986@qq.com,1770520605@qq.com,2955903779@qq.com',
+                'mailTo': '664720125@qq.com',
+                # 'mailTo': '664720125@qq.com,1565890608@qq.com,1773087583@qq.com,457958791@qq.com,545476870@qq.com,2236807036@qq.com,670767661@qq.com,814491080@qq.com,9538631@qq.com,2586472986@qq.com,1770520605@qq.com,2955903779@qq.com',
                 'mailTitle': '接口自动化测试报告',
                 'mailModule': 'module2.html'}
-

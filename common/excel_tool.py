@@ -6,6 +6,7 @@
 @Time   : 2020/11/25 8:57
 @Author : yd
 @Version: 1.0
+<<<<<<< HEAD
 @ToDo    : 使用openpyxl进行excel的读写操作 row column 从1开始
 """
 import os
@@ -42,6 +43,7 @@ class ExcelTool:
         :return: list
         """
         return self.workbook.sheetnames
+
 
     def set_sheet(self, sheet_name):
         """

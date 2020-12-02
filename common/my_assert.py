@@ -8,9 +8,7 @@
 @ToDo    : 
 """
 import json
-
 import jsonpath
-
 from common.logger import logger
 from common.type_judgment import is_dict
 
@@ -84,3 +82,4 @@ def assert_jsonpath(response, jsonpath_str, expect):
     # st = json.loads(st)
     # print(st)
     # print(jsonpath.jsonpath(st, '$.Data.FeatureParams.FeatureType'))
+

@@ -11,7 +11,6 @@
 import json
 import sys
 import traceback
-
 import requests
 
 from common import get_photo_base64
@@ -69,6 +68,7 @@ class Inter:
 
     def set_case(self, case):
         """
+<<<<<<< HEAD
         设置用例, 把Excel某一行赋值过来
         :param case: disc类型
         :return:
