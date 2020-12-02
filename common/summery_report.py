@@ -8,8 +8,9 @@
 @Version: 1.0
 @ToDo    :  对执行后的用例结果进行汇总分析
 """
+import global_variables
 from common.excel_tool import ExcelTool
-from global_variables import cell_config, get_abspath, time_start, time_end
+from global_variables import cell_config, get_abspath, email_config
 
 
 class SummeryReport:
@@ -32,15 +33,17 @@ class SummeryReport:
         """
         # 重新赋值
         self.summery_info.clear()
-        self.summery_info['runtype'] = cell_config.get('reportTitle')
-        # self.summery_info['tester'] = cell_config.get('tester')
-        # self.summery_info['developer'] = cell_config.get('developer')
-        # self.summery_info['case_version'] = cell_config.get('caseVersion')
+        self.summery_info['title'] = email_config.get('reportTitle')
+        self.summery_info['runtype'] = email_config.get('runtype')
+        self.summery_info['tester'] = email_config.get('tester')
+        self.summery_info['developer'] = email_config.get('developer')
+        self.summery_info['appVersion'] = email_config.get('appVersion')
+        self.summery_info['interface'] = email_config.get('interface')
         self.summery_info['casecount'] = ''
         self.summery_info['passrate'] = ''
-        self.summery_info['starttime'] = time_start
-        self.summery_info['endtime'] = time_end
-        self.summery_info['status'] = time_end
+        self.summery_info['starttime'] = global_variables.time_start
+        self.summery_info['endtime'] = global_variables.time_end
+        self.summery_info['status'] = ''
 
         case_pass_count = 0
         case_fail_count = 0
@@ -72,7 +75,7 @@ class SummeryReport:
         except Exception as e:
             pass_rate = 0.0
 
-        self.summery_info['casecount'] = case_count
+        self.summery_info['casecount'] = str(case_count)
         self.summery_info['passrate'] = str(pass_rate) + '%'
         if case_fail_count > 0 or case_block_count > 0:
             self.summery_info['status'] = 'FAIL'
@@ -122,7 +125,7 @@ class SummeryReport:
                 group_smale['pass_count'] = pass_count
                 group_smale['fail_count'] = case_count - pass_count
                 group_smale['status'] = status
-                print('group_smale =', group_smale)
+                # print('group_smale =', group_smale)
                 self.group_info.append(group_smale)
             case_count = 0
             pass_count = 0

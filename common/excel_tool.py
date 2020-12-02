@@ -115,7 +115,8 @@ class ExcelTool:
         row = int(row)
         column = int(column)
         if row > 0 and column > 0:
-            self.set_sheet(sheet_name)
+            # self.set_sheet(sheet_name)
+            self.sheet = self.workbook[sheet_name]
             try:
                 cell = self.sheet.cell(row=row, column=column, value=value)
                 font = Font(name='Arial',

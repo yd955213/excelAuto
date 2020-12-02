@@ -13,10 +13,9 @@ from email.header import Header
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from smtplib import SMTP_SSL
-
 from common.summery_report import SummeryReport
 from common.type_judgment import is_Null
-from global_variables import email_config, get_abspath
+from global_variables import email_config, get_abspath, test_url
 
 
 class MyEmail:
@@ -28,7 +27,7 @@ class MyEmail:
         self.email_to = email_config.get('mailTo')
         self.smtp_server = 'smtp.' + self.email_form[self.email_form.find('@') + 1: len(self.email_form)]
         self.email_title = email_config.get('mailTitle')
-        self.email_module = email_config.get('mailModule') if is_Null(
+        self.email_module = email_config.get('mailModule') if not is_Null(
             email_config.get('mailModule')) else 'module1.html'
         # 获取html用例模板
         with open(file=get_abspath('data/email_module/') + '/' + self.email_module, mode='r',
@@ -74,11 +73,7 @@ class MyEmail:
         """
         生成可发送的html文件
         """
-        # self.email_content = self.__get_summary().replace('mailbody', self.__get_details())
-        st = '\t'+'本次测试通过率低是因为请求返回的Code与预期的不一致及部分用例想某些值不赋值导致json解析失败导致的，' \
-             '需进一步优化及部门用例是否通过需讨论。' \
-                  '\n'+'\t'+'详细报告见：http://172.168.120.230:63342/excelAuto/myreport/report/index.html'
-        return st + '\n' + self.__get_summary().replace('mailbody', self.__get_details())
+        return '详细测试信息请见：' + test_url + self.__get_summary().replace('mailbody', self.__get_details())
 
     def __get_summary(self):
         """
@@ -87,10 +82,10 @@ class MyEmail:
         """
         summary = self.summery_report.get_summery_info()
         text = self.email_content
+        text = text.replace('XXX自动化测试报告全局唯一', summary.get('title'))
         # 替换汇总信息
         # print(summary)
         for key in summary.keys():
-            # print('key =', key)
             if summary[key] == "PASS":
                 text = text.replace(
                     '<font style="font-weight: bold;font-size: 14px;color: #00d800;">status</font>',
@@ -102,7 +97,7 @@ class MyEmail:
                     '<font style="font-weight: bold;font-size: 14px;color: red;">FAIL</font>')
                 text = text.replace('scolor', 'red;')
             else:
-                text = text.replace(str(key), str(summary[key]))
+                text = text.replace(key, str(summary[key]))
 
         return text
 

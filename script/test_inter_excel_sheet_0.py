@@ -35,15 +35,15 @@ class TestDev01:
         lines_1.append(i)
 
     @pytest.mark.parametrize("cases", lines_1)
-    def test_l01(self, cases):
-        print(self.lines.__len__())
-        # for case in self.lines:
+    def test_http_inter(self, cases):
+        # allure.dynamic.e("361版本:361.1.2.0")
+        # allure.MASTER_HELPER.environment("协议版本:V1.2.24")
         try:
             self.test_scr.model_case(cases=self.lines[cases])
-            assert True
         except Exception as e:
-            logger.debug(e)
+            pytest.mark.xfail(e)
             assert False
+        # yield self.lines[cases]
 
     def teardown(self):
         self.test_scr.excel.save()

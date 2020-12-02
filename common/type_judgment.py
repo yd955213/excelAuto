@@ -74,7 +74,7 @@ def is_Null(value):
         return True
 
 
-# 这里有个bug 如果li=['', None],使用is_None_in_list(*li)时 传入的为元祖（‘’, None）,然而此时None类型为<class 'str'>，导致判断错误
+# 这里有个bug 如果li=['', environment.properties],使用is_None_in_list(*li)时 传入的为元祖（‘’, environment.properties）,然而此时None类型为<class 'str'>，导致判断错误
 def is_None_in_list(li):
     sum_1 = 0
     for i in li:
@@ -93,9 +93,9 @@ if __name__ == '__main__':
     # print(is_None_in_list(args))
     # # args = ''
     # # print(is_Null(args))
-    # # args = None
+    # # args = environment.properties
     # # print(is_Null(args))
-    # # args = 'None'
+    # # args = 'environment.properties'
     # # print(is_Null(args))
     # # args = '1'
     # # print(is_Null(args))

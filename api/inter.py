@@ -11,6 +11,7 @@
 import json
 import sys
 import traceback
+
 import requests
 
 from common import get_photo_base64
@@ -20,8 +21,8 @@ from global_variables import cell_config
 
 class Inter:
     # 关联字典拆分字符串
-    arrow = '->'
-    r_arrow = '<-'
+    arrow = '{->'
+    r_arrow = '}'
 
     def __init__(self, host):
         self.url = host
@@ -88,8 +89,6 @@ class Inter:
             self.params = None
         else:
             try:
-                # print('************************************************')
-                # print(case[cell_config.get('params') - 1])
                 self.params = json.loads(self._get_relations(case[cell_config.get('params') - 1]))
             except Exception as e:
                 logger.exception(traceback.format_exc())

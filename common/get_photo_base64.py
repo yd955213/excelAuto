@@ -45,4 +45,8 @@ for file in file_list:
         photo_dic['base64low.jpg'] = photo_base64[:100] + photo_base64[105:]
         # 含头文件
         photo_dic['base64header.jpg'] = 'data:image/jpg;base64,' + photo_base64
+    elif name.__contains__('logo'):
+        photo_dic['logolow.jpg'] = photo_base64[:100] + photo_base64[105:]
+        # 含头文件
+        photo_dic['logo_base64.jpg'] = 'data:image/jpg;base64,' + photo_base64
 
