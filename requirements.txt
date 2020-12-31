@@ -2,3 +2,12 @@ openpyxl
 jsonpath
 pytest
 pyyaml
+selenium
+requests
+opencv-python
+pyautogui
+pytest-rerunfailures
+pytest-xdist
+allure-pytest
+PyYAML
+Appium-Python-Client

@@ -6,18 +6,16 @@
 @Time   : 2020/11/25 8:57
 @Author : yd
 @Version: 1.0
-<<<<<<< HEAD
 @ToDo    : 使用openpyxl进行excel的读写操作 row column 从1开始
 """
 import os
 import shutil
-import traceback
-
 import openpyxl
 from openpyxl.styles import Font
 
+from common import type_judgment
 from common.logger import logger
-from global_variables import get_abspath, cell_config
+from global_variables import get_abspath, cell_config, ui_cell_config
 
 
 class ExcelTool:
@@ -43,7 +41,6 @@ class ExcelTool:
         :return: list
         """
         return self.workbook.sheetnames
-
 
     def set_sheet(self, sheet_name):
         """
@@ -76,22 +73,22 @@ class ExcelTool:
         for i in range(2, self.row + 1):
             # line = {}
             line = []
-            if self.sheet.cell(i, cell_config.get('is_run')).value == '是':
-                for j in range(1, self.column + 1):
-                    if self.sheet.cell(i, j).value is None:
-                        line.append('')
-                    else:
-                        if j == cell_config.get('method'):
-                            line.append(str(self.sheet.cell(i, j).value).lower().replace('\n', ''))
-                        else:
-                            line.append(str(self.sheet.cell(i, j).value).replace('\n', ''))
+            # if self.sheet.cell(i, cell_config.get('is_run')).value == '是':
+            for j in range(1, self.column + 1):
+                if self.sheet.cell(i, j).value is None:
+                    line.append('')
                 else:
-                    # 当取得所有值是，把sheet页写入list中，方便进行写操作时知道要写入那个sheet页
-                    line.append(self.sheet_name)
-                    # 把row加入lines中， 方便其他地方调用
-                    line.append(i)
-                # print(line)
-                lines.append(line)
+                    if j == cell_config.get('method'):
+                        line.append(str(self.sheet.cell(i, j).value).lower().replace('\n', ''))
+                    else:
+                        line.append(str(self.sheet.cell(i, j).value).replace('\n', ''))
+            else:
+                # 当取得所有值是，把sheet页写入list中，方便进行写操作时知道要写入那个sheet页
+                line.append(self.sheet_name)
+                # 把row加入lines中， 方便其他地方调用
+                line.append(i)
+            # print(line)
+            lines.append(line)
         return lines
 
     def read_no_pass_line(self, row):
@@ -144,11 +141,74 @@ class ExcelTool:
         """
         self.workbook.save(self.result_file_path)
 
+    def read_ui_excel(self):
+        cases = []
+        step_list = []
+        for sheet in self.get_sheet_names():
+            self.set_sheet(sheet)
+            li = []
+            case = []
+            for i in range(2, self.row + 1):
+                if i == 2:
+                    li.append(self.read_cell(i, ui_cell_config.get('id')))
+                    li.append(self.read_cell(i, ui_cell_config.get('group')))
+                    li.append(self.read_cell(i, ui_cell_config.get('case_name')))
+                    li.append(self.read_cell(i, ui_cell_config.get('case_describe')))
+
+                elif not type_judgment.is_Null(self.read_cell(i, ui_cell_config.get('id'))) \
+                        and type_judgment.is_Null(self.read_cell(i, ui_cell_config.get('method'))):
+                    if len(case) > 0:
+                        li.append(case)
+                        cases.append(li)
+                        li = []
+                        case = []
+
+                    li.append(self.read_cell(i, ui_cell_config.get('id')))
+                    li.append(self.read_cell(i, ui_cell_config.get('group')))
+                    li.append(self.read_cell(i, ui_cell_config.get('case_name')))
+                    li.append(self.read_cell(i, ui_cell_config.get('case_describe')))
+
+                elif not type_judgment.is_Null(self.read_cell(i, ui_cell_config.get('method'))):
+                    step_list = []
+                    step_list.append(self.read_cell(i, ui_cell_config.get('case_step')))
+                    step_list.append(self.read_cell(i, ui_cell_config.get('method')))
+                    step_list.append(self.read_cell(i, ui_cell_config.get('expect_param1')))
+                    step_list.append(self.read_cell(i, ui_cell_config.get('expect_param2')))
+                    step_list.append(self.read_cell(i, ui_cell_config.get('expect_param3')))
+                    step_list.append(i)
+                    step_list.append(sheet)
+                    # print('step =', step_list)
+                    case.append(step_list)
+                    # print('case =', case)
+            else:
+                if len(case) > 0:
+                    li.append(case)
+                    cases.append(li)
+                    li = []
+                    case = []
+                    step_list = []
+        return cases
+
+    def read_cell(self, row, column):
+        """
+        调用前需要调用 set_sheet()方法
+        :param row:
+        :param column:
+        :return:
+        """
+        value = self.sheet.cell(row, column).value
+        if value is None:
+            value = ''
+        else:
+            value = str(value).lower().replace('\n', '').replace(' ', '')
+        return value
+
 
 if __name__ == '__main__':
-    e = ExcelTool(get_abspath('data/cases/人脸设备接口_1.xlsx'))
-    li = e.read_all()
-    print(len(li))
-    # for a in li:
-    #     print(len(a))
-#     print(a)
+    e = ExcelTool(get_abspath('data/cases/UI自动化测试用例.xlsx'))
+    li = e.read_ui_excel()
+    for a in li:
+        print(a)
+        lis = a[-1]
+        for b in lis:
+            print(b)

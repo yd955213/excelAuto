@@ -9,6 +9,8 @@
 @ToDo    : 
 """
 import os
+import traceback
+
 import allure
 import pytest
 
@@ -16,7 +18,7 @@ from common.logger import logger
 from script.model import ModelScript
 
 
-@allure.epic('达实人脸HTTP接口协议接口测试')
+@allure.epic('人脸HTTP接口测试')
 class TestDev01:
 
     test_scr = ModelScript()
@@ -24,13 +26,7 @@ class TestDev01:
     lines = test_scr.excel.read_all()
     lines_1 = []
 
-    # def setup_class(self):
-    #     self.test_scr = ModelScript()
-    #     self.test_scr.excel.set_sheet(self.test_scr.sheet_names[0])
-    #     self.lines = self.test_scr.excel.read_all()
-    #     # print('self.lines =', self.lines)
-    #     lines = self.lines
-
+    # for i in range(0, 10):   # 测试用
     for i in range(0, len(lines)):
         lines_1.append(i)
 
@@ -38,12 +34,7 @@ class TestDev01:
     def test_http_inter(self, cases):
         # allure.dynamic.e("361版本:361.1.2.0")
         # allure.MASTER_HELPER.environment("协议版本:V1.2.24")
-        try:
-            self.test_scr.model_case(cases=self.lines[cases])
-        except Exception as e:
-            pytest.mark.xfail(e)
-            assert False
-        # yield self.lines[cases]
+        self.test_scr.model_case(cases=self.lines[cases])
 
     def teardown(self):
         self.test_scr.excel.save()

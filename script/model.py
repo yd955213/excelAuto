@@ -9,8 +9,10 @@
 @Description   :   
 """
 import allure
+import pytest
 import common.my_assert as obj
 from api.inter import Inter
+from common import type_judgment
 from common.excel_tool import ExcelTool
 from common.logger import logger
 from global_variables import get_abspath, cell_config, host_dev
@@ -23,25 +25,29 @@ class ModelScript:
         self.my_inter = Inter(host=host_dev)
         # 实例化ExcelTool类
         self.excel = ExcelTool(get_abspath(file_path))
-        # 每个方法执行参数化之前，都需要设置sheet页后，在读取excel获取对应的cases
+        # 每个方法执行参数化之前，都需要设置sheet页后，在读取excel获取对应的self.case
         self.sheet_names = self.excel.get_sheet_names()
         self.name = None
-
-    @allure.step('请求地址:{url}')
+        self.case = None
+        
+    # @allure.step('请求地址:{url}')
     def my_method(self, url):
-        pass
+        with allure.step('请求地址: {}'.format(url)):
+            pass
 
-    @allure.step('请求参数:')
+    @allure.step('点击查看请求参数:')
     def my_params(self, params):
         pass
 
-    @allure.step('响应结果:{response}')
+    # @allure.step('响应结果:{response}')
     def my_response(self, response):
-        pass
+        with allure.step('响应结果: {}'.format(response)):
+            pass
 
-    @allure.step('响应结果:{assert_result}')
+    # @allure.step('断言结果:{assert_result}')
     def my_assert(self, assert_result):
-        pass
+        with allure.step('断言结果: {}'.format(assert_result)):
+            pass
 
     def __step(self, assert_result, response_contain, url, params):
         self.my_assert(str(assert_result))
@@ -50,81 +56,102 @@ class ModelScript:
         self.my_response(str(response_contain))
 
     def model_case(self, cases):
-        name = cases[cell_config.get('model') - 1]
+        self.case = cases
+        self.__set_allure()
+        response = self.__send()
+        self.__update_allure(response)
+        self.__assert(response)
+
+    def __send(self):
+        # 写日志 现在出现写特殊字符报错，后期解决
+        try:
+            logger.debug('正在执行的用例为：{}'.format(self.case))
+        except Exception as e:
+            logger.exception(e)
+        # 反射调用接口关键字
+        response = None
+        # print(self.case[::-1])
+        try:
+            self.my_inter.set_case(self.case)
+            # 关联成功后，修改result_xxx.xlsx 中的参数列
+            if not type_judgment.is_Null(self.my_inter.params):
+                self.case[cell_config.get('params') - 1] = self.my_inter.relation_params_temp
+                self.excel.write(sheet_name=self.case[-2], row=self.case[-1], column=cell_config.get('params'),
+                                 value=self.my_inter.relation_params_temp,
+                                 color='FF0000')
+            # 通过反射获取Inter类的函数
+            response = getattr(self.my_inter, self.case[cell_config.get('method') - 1])()
+        except Exception as e1:
+            # 写请求返回结果 字体颜色红色
+            self.excel.write(sheet_name=self.case[-2], row=self.case[-1], column=cell_config.get('result'),
+                             value=e1,
+                             color='FF0000')
+            # 写测试结果 字体颜色红色
+            self.excel.write(sheet_name=self.case[-2], row=self.case[-1], column=cell_config.get('status'),
+                             value='FAIL', color='FF0000')
+        return response
+
+    def __set_allure(self):
+        name = self.case[cell_config.get('model') - 1]
         if not self.name == name:
             allure.dynamic.feature(name)
             self.name = name
         else:
             allure.dynamic.feature(self.name)
         # 设置allure报告的title
-        allure.dynamic.title(cases[cell_config.get('id') - 1] + ':' + cases[cell_config.get('case_name') - 1])
+        allure.dynamic.title(self.case[cell_config.get('id') - 1] + ':' + self.case[cell_config.get('case_name') - 1])
         # 设置allure报告的 描述
         allure.dynamic.description(
-            cases[cell_config.get('interface_name') - 1] + "，" + cases[cell_config.get('case_name') - 1])
+            self.case[cell_config.get('interface_name') - 1] + "，" + self.case[cell_config.get('case_name') - 1])
         # allure.severity()
-        # 写日志 现在出现写特殊字符报错，后期解决
-        try:
-            logger.debug('正在执行的用例为：{}'.format(cases))
-        except Exception as e:
-            logger.exception(e)
-        # 调用即可方法下
-        response = None
-        # print(cases[::-1])
-        try:
-            self.my_inter.set_case(cases)
-            # 通过反射获取Inter类的函数
-            response = getattr(self.my_inter, cases[cell_config.get('method') - 1])()
-        except Exception as e1:
-            # 写请求返回结果 字体颜色红色
-            self.excel.write(sheet_name=cases[-2], row=cases[-1], column=cell_config.get('result'), value="environment.properties",
-                             color='FF0000')
-            # 写测试结果 字体颜色红色
-            self.excel.write(sheet_name=cases[-2], row=cases[-1], column=cell_config.get('status'),
-                             value='FAIL', color='FF0000')
 
+    def __update_allure(self, response):
         if response is None:
             allure.severity(allure.severity_level.BLOCKER)
             self.my_method(str(self.my_inter.path))
-            self.my_params(str(cases[cell_config.get('params') - 1]))
-            self.my_response(str('environment.properties'))
+            self.my_params(str(self.case[cell_config.get('params') - 1]))
+            self.my_response(response.text)
             # return False
-            raise Exception('无任何返回')
-
+            # raise Exception('无任何返回')
         # 写请求返回结果
-        self.excel.write(sheet_name=cases[-2], row=cases[-1], column=cell_config.get('result'),
+        self.excel.write(sheet_name=self.case[-2], row=self.case[-1], column=cell_config.get('result'),
                          value=response.text)
+
+    def __assert(self, response):
         # 断言
         try:
             # 通过反射获取模块my_assert.py的函数
-            func = getattr(obj, cases[cell_config.get('assert_model') - 1])
+            func = getattr(obj, self.case[cell_config.get('assert_model') - 1])
             # 执行反射获取的函数
 
             if str(func).__contains__('assert_jsonpath'):
-                assert_result = func(response, cases[cell_config.get('expect_param1') - 1],
-                     cases[cell_config.get('expect_param2') - 1])
+                assert_result = func(response, self.case[cell_config.get('expect_param1') - 1],
+                                     self.case[cell_config.get('expect_param2') - 1])
             else:
-                assert_result = func(response, cases[cell_config.get('expect_param1') - 1])
+                assert_result = func(response, self.case[cell_config.get('expect_param1') - 1])
 
             logger.debug('断言结果：{}'.format(assert_result))
             # allure上显示测试步骤
             self.__step(assert_result=assert_result, response_contain=response.text, url=self.my_inter.path,
-                        params=cases[cell_config.get('params') - 1])
+                        params=self.case[cell_config.get('params') - 1])
             # 写断言结果 字体颜色绿色
-            self.excel.write(sheet_name=cases[-2], row=cases[-1], column=cell_config.get('expect_result'),
+            self.excel.write(sheet_name=self.case[-2], row=self.case[-1], column=cell_config.get('expect_result'),
                              value=assert_result, color='00FF00')
             # 写测试结果 字体颜色绿色
-            self.excel.write(sheet_name=cases[-2], row=cases[-1], column=cell_config.get('status'),
+            self.excel.write(sheet_name=self.case[-2], row=self.case[-1], column=cell_config.get('status'),
                              value='PASS', color='00FF00')
-            return True
+            assert True
         except Exception as e:
             allure.severity(allure.severity_level.CRITICAL)
             logger.debug('断言结果：{}'.format(e))
             self.__step(assert_result=e, response_contain=response.text, url=self.my_inter.path,
-                        params=cases[cell_config.get('params') - 1])
+                        params=self.case[cell_config.get('params') - 1])
             # 写断言结果 字体颜色红色
-            self.excel.write(sheet_name=cases[-2], row=cases[-1], column=cell_config.get('expect_result'),
+            self.excel.write(sheet_name=self.case[-2], row=self.case[-1], column=cell_config.get('expect_result'),
                              value=str(e), color='FF0000')
             # 写测试结果 字体颜色红色
-            self.excel.write(sheet_name=cases[-2], row=cases[-1], column=cell_config.get('status'),
+            self.excel.write(sheet_name=self.case[-2], row=self.case[-1], column=cell_config.get('status'),
                              value='FAIL', color='FF0000')
-            raise e
+
+            pytest.mark.xfail(e)
+            assert False

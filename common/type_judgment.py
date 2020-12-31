@@ -8,6 +8,7 @@
 @Version    :   1.0
 @Description   :   一些常见的数据类型判断
 """
+import traceback
 
 
 def is_dict(value):
@@ -70,7 +71,7 @@ def is_Null(value):
         else:
             return False
     except:
-        print('is_Null（type_judgment.py） 不支持数字')
+        print(traceback.format_exc(), value)
         return True
 
 

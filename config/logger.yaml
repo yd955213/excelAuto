@@ -1,4 +1,4 @@
-filename: ../logs/log.log
+filename: E:/pythonWorkPlace/excelAuto/excelAuto/logs/log.log
 # a:append,追加；w:write,覆盖
 filemode: a
 # "%(asctime)s - %(filename)s -%(name)s -%(levelname)s - %(message)s"

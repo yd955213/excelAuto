@@ -17,7 +17,7 @@ from global_variables import get_abspath
 class Logger:
     def __init__(self, file_path):
         
-        self.logger = None
+        self.my_logger = None
         with open(file=get_abspath(file_path), mode='r', encoding="utf-8") as file:
             logging_yaml = yaml.load(stream=file, Loader=yaml.FullLoader)
             # print(logging_yaml)
@@ -25,7 +25,7 @@ class Logger:
             logging.basicConfig(**logging_yaml)
             
         # 获取根记录器：配置信息从yaml文件中获取，只会输出到日志文件
-        self.logger = logging.getLogger()
+        self.my_logger = logging.getLogger()
         # 创建输出到控制台的输出流
         console = logging.StreamHandler()
         # 设置日志等级
@@ -33,11 +33,11 @@ class Logger:
         # 设置日志格式
         console.setFormatter(logging.Formatter(logging_yaml['format']))
         # 添加到logger输出
-        self.logger.addHandler(console)
+        self.my_logger.addHandler(console)
 
 
 # 日志
-logger = Logger('config/logger.yaml').logger
+logger = Logger('config/logger.yaml').my_logger
 
 
 if __name__ == "__main__":
