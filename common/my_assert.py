@@ -82,4 +82,3 @@ def assert_jsonpath(response, jsonpath_str, expect):
     # st = json.loads(st)
     # print(st)
     # print(jsonpath.jsonpath(st, '$.Data.FeatureParams.FeatureType'))
-

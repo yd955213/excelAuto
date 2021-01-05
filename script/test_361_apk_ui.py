@@ -20,7 +20,7 @@ from script.ui_model import UiModel
 @allure.epic('人脸apk UI测试')
 class Test_361_Ui:
     # model = None
-    model = UiModel()
+    model = UiModel('data/cases/UI自动化测试用例.xlsx')
     cases = []
 
     def setup_class(self):

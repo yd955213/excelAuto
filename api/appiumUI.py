@@ -12,17 +12,61 @@ import os
 import threading
 import time
 from telnetlib import EC
-
 from appium import webdriver
 import traceback
-
 from appium.webdriver.common.mobileby import MobileBy
 from appium.webdriver.common.touch_action import TouchAction
 from selenium.webdriver.support.wait import WebDriverWait
-
 from common import type_judgment
 from common.read_xml import ReadSetInfo
 from global_variables import ui_cell_config, get_abspath
+
+
+def _get_value(value='None', is_select=False):
+    if not is_number(value):
+        if value == '关闭' or value == '自动' or value == '限识别区域' or value == '反序':
+            value = '2 or False'
+
+        elif value == '打开' or value == '一周' or value == '不限识别区域' or value == '常开' or value == '正序':
+            value = '1 or True'
+        elif value == '一天' or value == '常关' or value == '设备不支持' or value == '卡号':
+            value = '0'
+        elif value == '人脸框':
+            value = 'rect'
+        elif value == '隐藏':
+            value = 'none'
+        elif value == '姓名':
+            value = 'true' if is_select else 'false'
+        elif value == '工号':
+            value = 'true' if is_select else 'false'
+        elif value == '部门':
+            value = 'true' if is_select else 'false'
+        elif value == '维根34':
+            value = '34'
+        elif value == '维根26':
+            value = '26'
+        elif value == '人脸ID':
+            value = '34'
+        else:
+            value = '{} 未定义'.format(value)
+    return value
+
+
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        pass
+
+    try:
+        import unicodedata
+        unicodedata.numeric(s)
+        return True
+    except (TypeError, ValueError):
+        pass
+
+    return False
 
 
 class AppiumUI:
@@ -40,6 +84,8 @@ class AppiumUI:
         self.sheet_name = None
         self.relation = None
         self.set_info = None
+        self.temp_dict = None
+        self.temp_str = None
 
     def start_appium(self, appium_path='', port='4723'):
         """
@@ -110,7 +156,7 @@ class AppiumUI:
                 if locator.find(':id/') > 0:
                     element = self.driver.find_element_by_id(locator)
                 elif locator.startswith('//'):
-                    element = self.driver.find_elements_by_xpath(locator)
+                    element = self.driver.find_element_by_xpath(locator)
                 else:
                     ele = self.driver.find_element_by_accessibility_id(locator)
                 self.__write_excel(True)
@@ -256,7 +302,7 @@ class AppiumUI:
 
     def assert_element_text(self, locator='None', value='None', t='1'):
         """
-        必定元素的文本值是否包含预期值
+        断言元素的文本值是否包含预期值
         :param locator:
         :param value:
         :param t:
@@ -284,11 +330,11 @@ class AppiumUI:
 
     def __get_set_info(self, file_name='SetInfo.xml'):
         """
-        获取app的系统设置的配置文件
+        获取app的系统设置的配置文件，当配置文件发生变化时，需要修改路径： data/data/com.das.face/shared_prefs
         :param file_name: 默认对去文件：SetInfo.xml
         :return:
         """
-        os.system(r'adb pull data/data/com.das.face/shared_prefs {}'.format(get_abspath('config/')))
+        os.system(r'adb pull data/data/com.das.face/shared_prefs/{} {}'.format(file_name, get_abspath('config/')))
         return ReadSetInfo(file_name).get_setInfo()
 
     def exit_screen_saver(self):
@@ -299,6 +345,7 @@ class AppiumUI:
         self.sleep(0.1)
         touchAction = TouchAction(self.driver)
         touchAction.tap(x=100, y=100).release().perform()
+        self.__write_excel(True)
         return True
 
     def set_sheet_name(self, sheet_name):
@@ -330,52 +377,101 @@ class AppiumUI:
         if not type_judgment.is_Null(dsc):
             self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('remark'), str(dsc))
 
+    def get_element_text(self, locator='None'):
+        el = self.__find_element(locator)
+        if el is not None:
+            self.__write_excel(True)
+            self.temp_str = el.text
+        else:
+            self.__write_excel(False)
+            self.temp_str = "None"
+        return self.temp_str
 
-def __get_value(self, value='None', is_select='true'):
-    if not is_number(value):
-        if value == '关闭':
-            value = 2
-        elif value == '打开':
-            value = 1
-        elif value == '一周':
-            value = 1
-        elif value == '一天':
-            value = 0
-        elif value == '人脸框':
-            value = 1
-        elif value == '隐藏':
-            value = 0
-        elif value == '不限识别区域':
-            value = 1
-        elif value == '限识别区域':
-            value = 0
-        elif value == '姓名':
-            value = 0
-        elif value == '工号':
-            value = 0
-        elif value == '部门':
-            value = 0
-        elif value == '常开':
-            value = 0
-        elif value == '常关':
-            value = 0
-        elif value == '自动':
-            value = 0
-    return value
-
-
-def is_number(s):
-    try:
-        float(s)
+    def clean_temp_dict(self):
+        """
+        初始化临时字典，用于对比
+        :return:
+        """
+        self.temp_dict = {}
+        self.temp_str = "None"
         return True
-    except ValueError:
-        pass
 
-    try:
-        import unicodedata
-        unicodedata.numeric(s)
+    def add_temp_dict(self, key='None', value='None'):
+        """
+        添加临时字典，用于对比 value为空时，为get_element_text（）获取的值，适用于开关UI按钮
+        :param key:键
+        :param value:值
+        :return:
+        """
+        if key == '':
+            key = 'None'
+        if value == 'None' or value == '':
+            self.temp_dict[key] = _get_value(self.temp_str)
+        else:
+            self.temp_dict[key] = _get_value(value)
+
         return True
-    except (TypeError, ValueError):
-        pass
 
-    return False
+    def assert_temp_dict(self):
+        """
+        对配置文件进行断言，使用方法：
+        1、使用前有限调用方法：clean_temp_dict（），初始化临时字典：self.temp_dict；
+        2、调用get_element_text（），获取UI元素的文本值；
+        3、再调用：add_temp_dict（key），对程序内部self.temp_dict进行赋值；
+        4、再调用本方法，进行断言，
+        :return:
+        """
+        config_dict = self.__get_set_info('SetInfo.xml')
+        dic = self.__get_set_info('settingParam.xml')
+        for key in dic.keys():
+            config_dict[key] = dic[key]
+        flag = True
+        msg = '断言失败，'
+        for key in self.temp_dict.keys():
+            if not str(self.temp_dict.get(key)).lower().__contains__(str(config_dict.get(key)).lower()):
+                flag = False
+                msg += '预期：{}={}，实际：{}={} /r/n'.format(key, self.temp_dict.get(key), key, config_dict.get(key))
+        if flag:
+            msg = '断言成功！'
+
+        self.__write_excel(flag, msg=msg)
+        return flag
+
+    def assert_is_select(self, locator='None', value='None'):
+        """
+        断言元素是否被选中
+        :param locator:
+        :param value: 预期结果值
+        :return: boolean
+        """
+        el = self.__find_element(locator)
+        if el is not None:
+            result = el.is_selected()
+            if str(result).lower() == value.lower():
+                self.__write_excel(True, '断言成功，预期：{}，实际：{}'.format(value, result))
+                return True
+            else:
+                self.__write_excel(False, '断言失败，预期：{}，实际：{}'.format(value, result))
+                return False
+        else:
+            self.__write_excel(False, '断言失败，预期：{}，实际：{}'.format(value, '未找到元素'))
+            return False
+
+    def select_check_box(self, locator='None', value='true'):
+        """
+        是否选中复选框，value:true为选中，其他为不选中
+        :param locator:
+        :param value: true为选中，其他为不选中
+        :return:
+        """
+        el = self.__find_element(locator)
+        if el is not None:
+            if value.lower() == 'true':
+                if not el.is_selected():
+                    el.click()
+            elif value.lower() == 'false':
+                if el.is_selected():
+                    el.click()
+            return True
+        else:
+            return False

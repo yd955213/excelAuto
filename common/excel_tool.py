@@ -175,6 +175,7 @@ class ExcelTool:
                     step_list.append(self.read_cell(i, ui_cell_config.get('expect_param1')))
                     step_list.append(self.read_cell(i, ui_cell_config.get('expect_param2')))
                     step_list.append(self.read_cell(i, ui_cell_config.get('expect_param3')))
+                    step_list.append(self.read_cell(i, ui_cell_config.get('describe')))
                     step_list.append(i)
                     step_list.append(sheet)
                     # print('step =', step_list)

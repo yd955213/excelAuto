@@ -28,31 +28,27 @@ class UiModel:
         self.name = None
         self.cases = None
 
-    # @allure.step
-    # def step(self, number, title):
-    #     with allure.step('{}、{}'.format(number, title)):
-    #         pass
-
     def run_case(self, cases):
         # logger.debug(cases)
         allure.dynamic.feature(cases[ui_cell_config.get('group') - 1])
         allure.dynamic.title(cases[ui_cell_config.get('id') - 1] + '--' + cases[ui_cell_config.get('case_name') - 1])
+        # allure 用例描述
         allure.dynamic.description(
-            cases[ui_cell_config.get('case_name') - 1] + '，' + cases[ui_cell_config.get('case_describe') - 1])
+            cases[ui_cell_config.get('case_name') - 1] + '，' + cases[ui_cell_config.get('case_describe') - 1]
+        )
         cases = cases[-1]
         num = 0
         for case in cases:
             # 测试开始
-            # logger.debug(case)
+            logger.debug(case)
             is_ok = False
             num = num + 1
             key_word = case[1]
-
             self.row = case[-2]
             self.sheet_name = case[-1]
             self.key_ui.set_sheet_name(self.sheet_name)
             self.key_ui.excel_write_row = self.row
-
+            # 反射获取要执行的关键字函数
             try:
                 fun = getattr(self.key_ui, key_word)
             except Exception as e:
@@ -62,13 +58,17 @@ class UiModel:
                 self.__write_excel(False, column=ui_cell_config.get('status'), value='FAIL')
                 self.__write_excel(False, column=ui_cell_config.get('describe'), value='后台不支持该关键字！！')
                 assert False
-
+            # 获取参数
             params = case[2:5]
             try:
+                # params[:params.index('')] 会过滤 ’‘字段，这里定义，excel文档中要输入''时，使用字符串'null'代替,这里做转换
                 params = params[:params.index('')]
+                for i in range(0, params.__len__()):
+                    if params[i].lower() == 'null':
+                        params[i] = ''
             except:
                 pass
-
+            # 执行关键字函数
             try:
                 if fun is not None:
                     with allure.step('{}、{}'.format(num, case[0])):
