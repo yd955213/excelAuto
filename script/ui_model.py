@@ -122,3 +122,20 @@ class UiModel:
                          value=value,
                          color=color,
                          fg_color=fg_color)
+
+
+# if __name__ == '__main__':
+#     u = UiModel('data/cases/test.xlsx')
+#     u.row = 8
+#     u.sheet_name = u.excel.get_sheet_names()[0]
+#     u.write_excel(True, 8, 'test123')
+#     u.row = 9
+#     u.write_excel(False, 8, 'test123')
+#     u.row = 10
+#     u.write_excel(True, 12, 'test123')
+#     u.row = 11
+#     u.write_excel(True, ui_cell_config.get('status'), 'test123')
+#     u.row = 12
+#     u.write_excel(False, ui_cell_config.get('status'), 'test123')
+#     u.excel.save()
+

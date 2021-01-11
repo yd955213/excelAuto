@@ -20,6 +20,7 @@ from appium.webdriver.common.touch_action import TouchAction
 from selenium.webdriver.support.wait import WebDriverWait
 from common import type_judgment
 from common.logger import logger
+from common.my_color import MyColor
 from common.read_xml import ReadSetInfo
 from global_variables import ui_cell_config, get_abspath
 
@@ -375,29 +376,32 @@ class AppiumUI:
         :return: 无
         """
         if status is True:
-            self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('status'), "PASS", '000000')
+            self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('status'), "PASS", fg_color=MyColor.WHITE)
         elif status is False:
-            self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('status'), "FAIL", 'FF0000')
+            self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('status'), "FAIL", fg_color=MyColor.RED)
         else:
-            self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('status'), str(status), 'FF0000')
+            self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('status'), str(status), fg_color=MyColor.RED)
 
         if not type_judgment.is_Null(msg):
             # 有时候实际结果过长，我们就只保存前30000个字符
             msg = str(msg)
-            if len(msg) > 30000:
-                msg = msg[0:30000]
-            self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('result'), str(msg))
+            # if len(msg) > 30000:
+            #     msg = msg[0:30000]
+            try:
+                self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('result'), str(msg))
+            except Exception as e:
+                logger.exception(e)
+                self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('describe'), str(e),
+                                 color=MyColor.RED)
 
         if not type_judgment.is_Null(dsc):
             try:
                 self.excel.set_sheet(self.sheet_name)
-                # print('******************read_cell = ({}, {})**********************'
-                #       .format(self.excel_write_row, ui_cell_config.get('describe')))
                 logger.debug('read_cell = ({}, {})'.format(self.excel_write_row, ui_cell_config.get('describe')))
                 dsc = str(dsc) + self.excel.read_cell(self.excel_write_row, ui_cell_config.get('describe'))
             except Exception as e:
                 logger.exception(e)
-            self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('describe'), str(dsc))
+            self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('describe'), str(dsc), color=MyColor.RED)
 
     def get_element_text(self, locator='None'):
         el = self.__find_element(locator)
