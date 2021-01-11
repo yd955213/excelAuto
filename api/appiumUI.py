@@ -187,7 +187,8 @@ class AppiumUI:
         """
         self.sleep()
         touchAction = TouchAction(self.driver)
-        el = self.__find_element("com.das.face:id/ivLogo")
+        # el = self.__find_element("com.das.face:id/ivLogo")
+        el = self.__find_element(locator)
         if el is not None:
             self.__write_excel(True)
             touchAction.long_press(el, t * 1000).perform()
@@ -393,7 +394,7 @@ class AppiumUI:
                 # print('******************read_cell = ({}, {})**********************'
                 #       .format(self.excel_write_row, ui_cell_config.get('describe')))
                 logger.debug('read_cell = ({}, {})'.format(self.excel_write_row, ui_cell_config.get('describe')))
-                dsc += self.excel.read_cell(self.excel_write_row, ui_cell_config.get('describe'))
+                dsc = str(dsc) + self.excel.read_cell(self.excel_write_row, ui_cell_config.get('describe'))
             except Exception as e:
                 logger.exception(e)
             self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('describe'), str(dsc))
@@ -521,11 +522,10 @@ class AppiumUI:
         while True:
             el = self.__find_element(locator)
             if el is not None:
-                # print('**************找到 系统管理 ***************')
-                self.__write_excel(True)
+                # __find_element 未找到元素时，会在 dsc 栏写异常信息，这里循环查找到后，清除异常信息
+                self.__write_excel(True, dsc='')
                 break
             else:
-                # print('************** 回退 ***************')
                 self.driver.back()
-                self.__write_excel(False)
+                # self.__write_excel(False)   # 可要可不要
         return True

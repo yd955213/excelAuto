@@ -11,10 +11,11 @@
 import os
 import shutil
 import openpyxl
-from openpyxl.styles import Font
+from openpyxl.styles import Font, PatternFill
 
 from common import type_judgment
 from common.logger import logger
+from common.my_color import MyColor
 from global_variables import get_abspath, cell_config, ui_cell_config
 
 
@@ -101,7 +102,7 @@ class ExcelTool:
                     line.append(str(self.sheet.cell(row, j).value).replace('\n', ''))
         return line
 
-    def write(self, sheet_name, row=1, column=1, value='', color='000000'):
+    def write(self, sheet_name, row=1, column=1, value='', color=MyColor.BlACK, fg_color=MyColor.WHITE):
         """
         按行列写入对应的excel对的cell,写完后记得保存
         :param sheet_name: 需要写的sheet页
@@ -109,6 +110,7 @@ class ExcelTool:
         :param column: 列
         :param value: 值
         :param color: 字体颜色
+        :param fg_color: 填充颜色
         :return:
         """
         row = int(row)
@@ -127,6 +129,10 @@ class ExcelTool:
                             strike=False,
                             color=color)
                 cell.font = font
+                patternFill = PatternFill(fill_type='solid',
+                                          fgColor=fg_color)
+                cell.fill = patternFill
+
             except Exception as e:
                 logger.exception(e)
                 self.sheet.cell(row=row, column=column, value=e)
@@ -210,11 +216,11 @@ class ExcelTool:
 
 
 if __name__ == '__main__':
-    e = ExcelTool(get_abspath('data/cases/UI自动化测试用例.xlsx'))
-    li = e.read_ui_excel()
-    # print(li)
-    for a in li:
-        # print(a)
-        lis = a[-1]
-        for b in lis:
-            print(b)
+    # e = ExcelTool(get_abspath('data/cases/UI自动化测试用例.xlsx'))
+    e = ExcelTool(get_abspath('data/cases/test.xlsx'))
+    # e.set_sheet(e.get_sheet_names()[0])
+    e.write(e.get_sheet_names()[0], 5, 5, '哈哈', MyColor.BlACK, MyColor.RED)
+    e.write(e.get_sheet_names()[0], 5, 7, '哈哈123', MyColor.BlACK, MyColor.GREEN)
+    e.write(e.get_sheet_names()[0], 6, 5, '哈哈', MyColor.BlACK, MyColor.RED)
+    e.write(e.get_sheet_names()[0], 6, 7, '哈哈123', MyColor.BlACK, MyColor.GREEN)
+    e.save()

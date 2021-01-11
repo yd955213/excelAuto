@@ -12,6 +12,7 @@ import allure
 from api.appiumUI import AppiumUI as AppiumUI
 from common.excel_tool import ExcelTool
 from common.logger import logger
+from common.my_color import MyColor
 from global_variables import get_abspath, ui_cell_config
 
 
@@ -102,11 +103,22 @@ class UiModel:
 
     def __write_excel(self, status, column, value):
         if status:
-            color = '000000'
+            color = MyColor.BlACK
+            if column == ui_cell_config.get('status'):
+                fg_color = MyColor.GREEN
+            else:
+                fg_color = MyColor.WHITE
         else:
-            color = 'FF0000'
+            if column == ui_cell_config.get('status'):
+                color = MyColor.BlACK
+                fg_color = MyColor.RED
+            else:
+                color = MyColor.RED
+                fg_color = MyColor.WHITE
+
         self.excel.write(sheet_name=self.sheet_name,
                          row=self.row,
                          column=column,
                          value=value,
-                         color=color)
+                         color=color,
+                         fg_color=fg_color)

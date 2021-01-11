@@ -15,6 +15,7 @@ from api.inter import Inter
 from common import type_judgment
 from common.excel_tool import ExcelTool
 from common.logger import logger
+from common.my_color import MyColor
 from global_variables import get_abspath, cell_config, host_dev
 
 
@@ -77,18 +78,17 @@ class ModelScript:
             if not type_judgment.is_Null(self.my_inter.params):
                 self.case[cell_config.get('params') - 1] = self.my_inter.relation_params_temp
                 self.excel.write(sheet_name=self.case[-2], row=self.case[-1], column=cell_config.get('params'),
-                                 value=self.my_inter.relation_params_temp,
-                                 color='FF0000')
+                                 value=self.my_inter.relation_params_temp)
             # 通过反射获取Inter类的函数
             response = getattr(self.my_inter, self.case[cell_config.get('method') - 1])()
         except Exception as e1:
             # 写请求返回结果 字体颜色红色
             self.excel.write(sheet_name=self.case[-2], row=self.case[-1], column=cell_config.get('result'),
                              value=e1,
-                             color='FF0000')
+                             color=MyColor.RED)
             # 写测试结果 字体颜色红色
             self.excel.write(sheet_name=self.case[-2], row=self.case[-1], column=cell_config.get('status'),
-                             value='FAIL', color='FF0000')
+                             value='FAIL', fg_color=MyColor.RED)
         return response
 
     def __set_allure(self):
@@ -136,10 +136,10 @@ class ModelScript:
                         params=self.case[cell_config.get('params') - 1])
             # 写断言结果 字体颜色绿色
             self.excel.write(sheet_name=self.case[-2], row=self.case[-1], column=cell_config.get('expect_result'),
-                             value=assert_result, color='00FF00')
+                             value=assert_result)
             # 写测试结果 字体颜色绿色
             self.excel.write(sheet_name=self.case[-2], row=self.case[-1], column=cell_config.get('status'),
-                             value='PASS', color='00FF00')
+                             value='PASS', fg_color=MyColor.GREEN)
             assert True
         except Exception as e:
             allure.severity(allure.severity_level.CRITICAL)
@@ -148,10 +148,10 @@ class ModelScript:
                         params=self.case[cell_config.get('params') - 1])
             # 写断言结果 字体颜色红色
             self.excel.write(sheet_name=self.case[-2], row=self.case[-1], column=cell_config.get('expect_result'),
-                             value=str(e), color='FF0000')
+                             value=str(e), color=MyColor.RED)
             # 写测试结果 字体颜色红色
             self.excel.write(sheet_name=self.case[-2], row=self.case[-1], column=cell_config.get('status'),
-                             value='FAIL', color='FF0000')
+                             value='FAIL', fg_color=MyColor.RED)
 
             pytest.mark.xfail(e)
             assert False
