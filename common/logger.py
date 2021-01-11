@@ -15,7 +15,7 @@ from global_variables import get_abspath
 
 
 class Logger:
-    def __init__(self, file_path):
+    def __init__(self, file_path='config/logger.yaml'):
         
         self.my_logger = None
         with open(file=get_abspath(file_path), mode='r', encoding="utf-8") as file:

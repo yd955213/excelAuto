@@ -32,6 +32,7 @@ class Test_361_Ui:
     def teardown_class(self):
         self.model.excel.save()
         self.model.key_ui.quit()
+        self.model.key_ui.sleep(1)
         self.model.key_ui.stop_appium()
         print('测试结束**********************************************************')
 
@@ -49,5 +50,8 @@ class Test_361_Ui:
 
 
 if __name__ == '__main__':
-    pytest.main(["-s", "test_361_apk_ui.py", "--alluredir", "./myreport/temp"])
+    os.system(r'rd ..\myreport\temp\ /s/q')
+    # 使用allure 需要自行下载安装allure
+    pytest.main(["-sv", "test_361_apk_ui.py", "--alluredir", "../myreport/temp"])
+    # 执行命令行，生成allure测试报告
     os.system('allure generate ../myreport/temp -o ../myreport/report --clean')

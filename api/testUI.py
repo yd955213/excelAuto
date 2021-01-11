@@ -31,14 +31,14 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 appium_config = {
     'platformName': 'Android',
-    'platformVersion': '9',
-    'deviceName': '1234567890',
+    'platformVersion': '8.1.0',
+    'deviceName': 'cc001401b695c761c4e',
     'appPackage': 'com.das.face',
     'appActivity': '.activity.LoadingActivity',
-    'noReset': True,  # 清除缓存记录，微信小程序测试必须加上
+    'noReset': True,        # 清除缓存记录，微信小程序测试必须加上
     'unicodeKeyboard': True,
-    'resetKeyboard': True,  # 用来在自动化输入中文
-    'automationName': 'uiautomator2'  # 小程序 如果还是操作不了， 与uiautomator2互换
+    'resetKeyboard': True,      # 用来在自动化输入中文
+    'automationName': 'uiautomator2'    # 小程序 如果还是操作不了， 与uiautomator2互换
 }
 
 driver = webdriver.Remote('http://127.0.0.1:4723/wd/hub', appium_config)
@@ -104,25 +104,33 @@ if new_set:
         print(traceback.format_exc())
         print('no find')
     time.sleep(10)
+
+# els1 = driver.find_elements_by_xpath("//*[@text=\"网络\"]")
+# print(els1[0].text)
+# el = els1[0]
+# print(el.text)
+# els = driver.find_element_by_xpath("//*[@text=\"网络\"]")
+# print(els.text)
+
 """
 输入密码进入设置界面
 """
 # 进入设置界面
-time.sleep(5)
-touchAction = TouchAction(driver)
-touchAction.press(x=100, y=100).release().perform()
-el = driver.find_element_by_id("com.das.face:id/ivLogo")
-touchAction.long_press(el, 6000).perform()
-# 输入密码
-el = driver.find_element_by_id("com.das.face:id/et_dialog_pwd")
-# el.send_keys("654321")
-el.send_keys('123456')
-# 点击取消
-# el = driver.find_element_by_id("android:id/button2")
+# time.sleep(5)
+# touchAction = TouchAction(driver)
+# touchAction.press(x=100, y=100).release().perform()
+# el = driver.find_element_by_id("com.das.face:id/ivLogo")
+# touchAction.long_press(el, 6000).perform()
+# # 输入密码
+# el = driver.find_element_by_id("com.das.face:id/et_dialog_pwd")
+# # el.send_keys("654321")
+# el.send_keys('123456')
+# # 点击取消
+# # el = driver.find_element_by_id("android:id/button2")
+# # el.click()
+# # 点击确定
+# el = driver.find_element_by_id("android:id/button1")
 # el.click()
-# 点击确定
-el = driver.find_element_by_id("android:id/button1")
-el.click()
 # 提示信息 com.das.face:id/tv_dialog_info
 """
 员工管理
@@ -158,7 +166,7 @@ el.click()
 # # 设备名称
 # el = driver.find_element_by_xpath('//*[@text="设备名称"]//../*[2]')
 # el.clear()
-# el.send_keys('你是魔鬼吗')
+# el.send_keys('123')
 # # 设备id
 # el = driver.find_element_by_xpath('//*[@text="设备ID"]//../*[2]')
 # print(el.is_enabled())
@@ -290,7 +298,7 @@ el.click()
 # # 清理日志 弹出输入密码确认框
 # el = driver.find_element_by_xpath("//*[@text=\"清理日志\"]")
 # # el.click()
-# print(el.text)
+# print(el.is_selected())
 # time.sleep(1)
 #
 # # 批量导入 弹出批量导入进度提示框  文本提示：正在加载中…  find_element_by_id("android:id/alertTitle")
@@ -336,9 +344,10 @@ el.click()
 # el = driver.find_element_by_xpath("//*[@text=\"高级设置\"]/../*[1]")
 # el.click()
 # 保存  高级设置
-# el = driver.find_element_by_id("com.das.face:id/tvSaveSetting")
-# el.click()
 # time.sleep(1)
+# el = driver.find_element_by_id("com.das.face:id/tvSaveSetting")
+# print(el.text)
+# el.click()
 """
 # 识别设置
 """
@@ -385,9 +394,36 @@ el.click()
 # el = driver.find_element_by_xpath("//*[@text=\"常开\"]")
 # el.click()
 # # 补光灯开始时间
-# el = driver.find_element_by_id("com.das.face:id/tv_other_set_start_time")
-# print(el.text)
-# # 补光灯结束时间
+# el7 = driver.find_element_by_id("com.das.face:id/tv_other_set_start_time")
+# el7.click()
+# # 时钟选择8点
+# el8 = driver.find_element_by_accessibility_id("8")
+# el8.click()
+# # 分钟选择25分
+# el9 = driver.find_element_by_accessibility_id("25")
+# el9.click()
+# # 点击确定，确认时间
+# el10 = driver.find_element_by_id("android:id/button1")
+# el10.click()
+# # # 补光灯结束时间
+# el11 = driver.find_element_by_id("com.das.face:id/tv_other_set_end")
+# el11.click()
+# el12 = driver.find_element_by_accessibility_id("切换到文字输入模式来输入时间。")
+# el12.click()
+# # 时钟选择23点
+# el13 = driver.find_element_by_id("android:id/input_hour")
+# el13.clear()
+# el13.send_keys("23")
+# # 分钟选择59分
+# el14 = driver.find_element_by_id("android:id/input_minute")
+# el14.clear()
+# el14.send_keys("59")
+# # 点击确定，确认时间
+# el15 = driver.find_element_by_id("android:id/button1")
+# el15.click()
+# # 输入错误时间时文本提示：请输入有效的时间
+# el16 = driver.find_element_by_id("android:id/label_error")
+#
 # el = driver.find_element_by_id("com.das.face:id/tv_other_set_end")
 # print(el.text)
 #
@@ -475,3 +511,27 @@ el.click()
 # # 保存语音提示
 # el3 = driver.find_element_by_id("com.das.face:id/tvSave")
 # el3.click()
+
+
+# 系统设置
+# el4 = driver.find_element_by_id("com.das.face:id/btn_system")
+# el4.click()
+# el5 = driver.find_element_by_id("com.das.face:id/tvSaveSetting")
+# el5.click()
+# 识别设置
+# el6 = driver.find_element_by_id("com.das.face:id/btn_recognize")
+# el6.click()                      com.das.face:id/tvsave
+# el7 = driver.find_element_by_id("com.das.face:id/tvSave")
+# el7.click()
+# 输出设置
+# el8 = driver.find_element_by_id("com.das.face:id/btn_io")
+# el8.click()
+# el9 = driver.find_element_by_id("com.das.face:id/include_time_picker_save")
+# el9.click()
+# 语音设置
+# el10 = driver.find_element_by_id("com.das.face:id/btVoiceSetting")
+# el10.click()
+# el11 = driver.find_element_by_id("com.das.face:id/tvSave")
+# el11.click()
+#
+driver.quit()

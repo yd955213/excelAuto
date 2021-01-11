@@ -27,6 +27,7 @@ def get_abspath(file_path):
         else:
             return None
 
+
 # tomcat 地址
 test_url = 'http://172.168.120.230:8080/inter/index.html#behaviors'
 
@@ -45,10 +46,10 @@ appium_config = {
     'deviceName': 'cc001401b695c761c4e',
     'appPackage': 'com.das.face',
     'appActivity': '.activity.LoadingActivity',
-    'noReset': True,        # 清除缓存记录，微信小程序测试必须加上
+    'noReset': True,  # 清除缓存记录，微信小程序测试必须加上
     'unicodeKeyboard': True,
-    'resetKeyboard': True,      # 用来在自动化输入中文
-    'automationName': 'uiautomator2'    # 小程序 如果还是操作不了， 与uiautomator2互换
+    'resetKeyboard': True,  # 用来在自动化输入中文
+    'automationName': 'uiautomator2'  # 小程序 如果还是操作不了， uiautomator1与uiautomator2互换
 }
 
 # excel（xlxs格式）数据对应的列
@@ -80,9 +81,10 @@ ui_cell_config = {
     'expect_param1': 7,
     'expect_param2': 8,
     'expect_param3': 9,
-    'status': 10,
-    'result': 11,
-    'describe': 12
+    'is_run': 10,
+    'status': 11,
+    'result': 12,
+    'describe': 13
 }
 
 # 邮件发送配置参数

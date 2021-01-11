@@ -169,18 +169,20 @@ class ExcelTool:
                     li.append(self.read_cell(i, ui_cell_config.get('case_describe')))
 
                 elif not type_judgment.is_Null(self.read_cell(i, ui_cell_config.get('method'))):
-                    step_list = []
-                    step_list.append(self.read_cell(i, ui_cell_config.get('case_step')))
-                    step_list.append(self.read_cell(i, ui_cell_config.get('method')))
-                    step_list.append(self.read_cell(i, ui_cell_config.get('expect_param1')))
-                    step_list.append(self.read_cell(i, ui_cell_config.get('expect_param2')))
-                    step_list.append(self.read_cell(i, ui_cell_config.get('expect_param3')))
-                    step_list.append(self.read_cell(i, ui_cell_config.get('describe')))
-                    step_list.append(i)
-                    step_list.append(sheet)
-                    # print('step =', step_list)
-                    case.append(step_list)
-                    # print('case =', case)
+                    is_run = self.read_cell(i, ui_cell_config.get('is_run')).lower()
+                    if is_run == '是' or is_run == 'yes' or is_run == 'y':
+                        step_list = []
+                        step_list.append(self.read_cell(i, ui_cell_config.get('case_step')))
+                        step_list.append(self.read_cell(i, ui_cell_config.get('method')))
+                        step_list.append(self.read_cell(i, ui_cell_config.get('expect_param1')))
+                        step_list.append(self.read_cell(i, ui_cell_config.get('expect_param2')))
+                        step_list.append(self.read_cell(i, ui_cell_config.get('expect_param3')))
+                        step_list.append(self.read_cell(i, ui_cell_config.get('describe')))
+                        step_list.append(i)
+                        step_list.append(sheet)
+                        # print('step =', step_list)
+                        case.append(step_list)
+                        # print('case =', case)
             else:
                 if len(case) > 0:
                     li.append(case)
@@ -197,19 +199,22 @@ class ExcelTool:
         :param column:
         :return:
         """
+        row = int(row)
+        column = int(column)
         value = self.sheet.cell(row, column).value
         if value is None:
             value = ''
         else:
-            value = str(value).lower().replace('\n', '').replace(' ', '')
+            value = str(value).replace('\n', '').replace(' ', '').replace('\\', '')
         return value
 
 
 if __name__ == '__main__':
     e = ExcelTool(get_abspath('data/cases/UI自动化测试用例.xlsx'))
     li = e.read_ui_excel()
+    # print(li)
     for a in li:
-        print(a)
+        # print(a)
         lis = a[-1]
         for b in lis:
             print(b)

@@ -50,7 +50,7 @@ except ImportError:
 
 class ReadSetInfo:
     def __init__(self, file_name='SetInfo.xml'):
-        self.tree_root = ET.ElementTree(file=get_abspath('config/shared_prefs/{}'.format(file_name))).getroot()
+        self.tree_root = ET.ElementTree(file=get_abspath('config/{}'.format(file_name))).getroot()
         self.set_info = {}
 
     def get_setInfo(self):
@@ -65,8 +65,7 @@ class ReadSetInfo:
                     set_info[tree.get('name')] = tree.text
                 else:
                     set_info[tree.get('name')] = tree.get('value')
-
-                print(tree.get('name') + " = " + set_info[tree.get('name')])
+                # print(tree.get('name') + " = " + set_info[tree.get('name')])
         return set_info
 
     def set_info_dict(self, key='None', value='None'):
@@ -101,8 +100,15 @@ class ReadSetInfo:
 
 
 if __name__ == '__main__':
-    os.system(r'adb pull data/data/com.das.face/shared_prefs {}'.format(get_abspath('config/')))
-    rs = ReadSetInfo().get_setInfo()
-    print(rs)
+    os.system(r'adb root')
+    os.system(r'adb pull data/data/com.das.face/shared_prefs/SetInfo.xml {}'.format(get_abspath('config/')))
+    os.system(r'adb pull data/data/com.das.face/shared_prefs/settingParam.xml {}'.format(get_abspath('config/')))
+    config_dict = ReadSetInfo().get_setInfo()
+    dic = ReadSetInfo('settingParam.xml').get_setInfo()
+    for key in dic.keys():
+        config_dict[key] = dic[key]
+    print(config_dict.get('relayTime'))
+    print(config_dict.get('errorRelay'))
+    print(config_dict.get('DoorContactFlag'))
     # print(SetInfo.devicePort.name)
     # print(rs.get(SetInfo.devicePort.value))

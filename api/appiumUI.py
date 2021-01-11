@@ -11,23 +11,24 @@
 import os
 import threading
 import time
-from telnetlib import EC
-from appium import webdriver
 import traceback
-from appium.webdriver.common.mobileby import MobileBy
+
+from selenium.webdriver.support import expected_conditions as EC
+from appium.webdriver.common.mobileby import MobileBy as By
+from appium import webdriver
 from appium.webdriver.common.touch_action import TouchAction
 from selenium.webdriver.support.wait import WebDriverWait
 from common import type_judgment
+from common.logger import logger
 from common.read_xml import ReadSetInfo
 from global_variables import ui_cell_config, get_abspath
 
 
 def _get_value(value='None', is_select=False):
     if not is_number(value):
-        if value == '关闭' or value == '自动' or value == '限识别区域' or value == '反序':
+        if value == '关闭' or value == '自动' or value == '限识别区域' or value == '反序' or value.lower() == 'false':
             value = '2 or False'
-
-        elif value == '打开' or value == '一周' or value == '不限识别区域' or value == '常开' or value == '正序':
+        elif value == '打开' or value == '一周' or value == '不限识别区域' or value == '常开' or value == '正序' or value.lower() == 'true':
             value = '1 or True'
         elif value == '一天' or value == '常关' or value == '设备不支持' or value == '卡号':
             value = '0'
@@ -48,7 +49,7 @@ def _get_value(value='None', is_select=False):
         elif value == '人脸ID':
             value = '34'
         else:
-            value = '{} 未定义'.format(value)
+            value = '未定义（{}）'.format(value)
     return value
 
 
@@ -130,7 +131,7 @@ class AppiumUI:
                 'noReset': True,  # 清除缓存记录，微信小程序测试必须加上
                 'unicodeKeyboard': True,
                 'resetKeyboard': True,  # 用来在自动化输入中文
-                'automationName': 'uiautomator2'  # 小程序 如果还是操作不了， 与uiautomator2互换
+                'automationName': 'uiautomator2'  # 小程序 如果还是操作不了， uiautomator1与uiautomator2互换
             }'''
         :param t: 启动APP需要等待的时间
         :return:
@@ -138,7 +139,7 @@ class AppiumUI:
         # conf = str(conf).replace('\n', '')
         # conf = json.loads(conf)
         self.driver = webdriver.Remote("http://localhost:{}/wd/hub".format(self.port), conf)
-        self.driver.implicitly_wait(15)
+        self.driver.implicitly_wait(5)
         time.sleep(float(t))
 
     def __find_element(self, locator="None"):
@@ -158,13 +159,17 @@ class AppiumUI:
                 elif locator.startswith('//'):
                     element = self.driver.find_element_by_xpath(locator)
                 else:
-                    ele = self.driver.find_element_by_accessibility_id(locator)
+                    element = self.driver.find_element_by_accessibility_id(locator)
                 self.__write_excel(True)
             # else:
             #     self.__write_excel(False, '定位表达式为空')
-        except:
-            print(traceback.format_exc())
-            self.__write_excel(False, '未定位到元素，请检查定位表达式是否正确')
+        except Exception as e:
+            element = None
+            logger.exception(e.__str__())
+            self.__write_excel(False, dsc='未定位到元素，请检查定位表达式是否正确；错误信息：{}'.format(e.__str__()))
+
+        logger.info('locator = {}，element = {}'.format(locator, element))
+
         return element
 
     def sleep(self, t='1.0'):
@@ -221,7 +226,8 @@ class AppiumUI:
 
         if el is not None:
             el.clear()
-            el.send_keys(value)
+            if not (value == 'None' or value == ''):
+                el.send_keys(value)
             return True
         else:
             return False
@@ -249,7 +255,6 @@ class AppiumUI:
         :param t: 
         :return: 
         """
-
         self.sleep(t)
         el = self.__find_element(locator1)
         if el is None:
@@ -321,11 +326,13 @@ class AppiumUI:
 
     def assert_toast(self, locator='None', value='None'):
         try:
-            el = WebDriverWait(self.driver, 10, 0.01).until(EC.presence_of_element_located((MobileBy.XPATH, locator)))
-            self.__write_excel(True, '断言成功，预期：{}，实际：{}'.format(value, el.text))
+            # 显示等待
+            WebDriverWait(self.driver, timeout=5, poll_frequency=0.2).until(
+                EC.presence_of_element_located((By.XPATH, locator)))
+            self.__write_excel(True, '断言成功，预期toast弹框提示：{}，实际：toast弹窗可以找的'.format(value))
             return True
         except Exception as e:
-            self.__write_excel(True, '断言失败，预期：{}，实际：{}'.format(value, e))
+            self.__write_excel(False, '断言失败，预期toast弹框提示：{}，实际：未定位到元素，错误信息：{}'.format(value, e.__str__()))
             return False
 
     def __get_set_info(self, file_name='SetInfo.xml'):
@@ -334,6 +341,10 @@ class AppiumUI:
         :param file_name: 默认对去文件：SetInfo.xml
         :return:
         """
+        file_path = get_abspath('config/{}'.format(file_name))
+        if os.path.exists(file_path):
+            os.system('del /s/q {}'.format(file_path))
+        os.system('adb root')
         os.system(r'adb pull data/data/com.das.face/shared_prefs/{} {}'.format(file_name, get_abspath('config/')))
         return ReadSetInfo(file_name).get_setInfo()
 
@@ -366,6 +377,8 @@ class AppiumUI:
             self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('status'), "PASS", '000000')
         elif status is False:
             self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('status'), "FAIL", 'FF0000')
+        else:
+            self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('status'), str(status), 'FF0000')
 
         if not type_judgment.is_Null(msg):
             # 有时候实际结果过长，我们就只保存前30000个字符
@@ -375,17 +388,26 @@ class AppiumUI:
             self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('result'), str(msg))
 
         if not type_judgment.is_Null(dsc):
-            self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('remark'), str(dsc))
+            try:
+                self.excel.set_sheet(self.sheet_name)
+                # print('******************read_cell = ({}, {})**********************'
+                #       .format(self.excel_write_row, ui_cell_config.get('describe')))
+                logger.debug('read_cell = ({}, {})'.format(self.excel_write_row, ui_cell_config.get('describe')))
+                dsc += self.excel.read_cell(self.excel_write_row, ui_cell_config.get('describe'))
+            except Exception as e:
+                logger.exception(e)
+            self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('describe'), str(dsc))
 
     def get_element_text(self, locator='None'):
         el = self.__find_element(locator)
         if el is not None:
+            self.temp_str = el.text if not el.text == '' else str(el.is_selected())
             self.__write_excel(True)
-            self.temp_str = el.text
+            return True
         else:
+            self.temp_str = "未定位到元素"
             self.__write_excel(False)
-            self.temp_str = "None"
-        return self.temp_str
+        return False
 
     def clean_temp_dict(self):
         """
@@ -394,11 +416,12 @@ class AppiumUI:
         """
         self.temp_dict = {}
         self.temp_str = "None"
+        self.__write_excel(True)
         return True
 
     def add_temp_dict(self, key='None', value='None'):
         """
-        添加临时字典，用于对比 value为空时，为get_element_text（）获取的值，适用于开关UI按钮
+        添加临时字典，用于对比; value为空时，为get_element_text（）获取的值，适用于开关UI按钮
         :param key:键
         :param value:值
         :return:
@@ -408,8 +431,8 @@ class AppiumUI:
         if value == 'None' or value == '':
             self.temp_dict[key] = _get_value(self.temp_str)
         else:
-            self.temp_dict[key] = _get_value(value)
-
+            self.temp_dict[key] = value
+        self.__write_excel(True, dsc=self.temp_dict)
         return True
 
     def assert_temp_dict(self):
@@ -421,6 +444,7 @@ class AppiumUI:
         4、再调用本方法，进行断言，
         :return:
         """
+        self.sleep(1)
         config_dict = self.__get_set_info('SetInfo.xml')
         dic = self.__get_set_info('settingParam.xml')
         for key in dic.keys():
@@ -430,10 +454,11 @@ class AppiumUI:
         for key in self.temp_dict.keys():
             if not str(self.temp_dict.get(key)).lower().__contains__(str(config_dict.get(key)).lower()):
                 flag = False
-                msg += '预期：{}={}，实际：{}={} /r/n'.format(key, self.temp_dict.get(key), key, config_dict.get(key))
+                msg += '预期：{}={}，实际：{}={}；'.format(key, self.temp_dict.get(key), key, config_dict.get(key))
         if flag:
-            msg = '断言成功！'
+            msg = '断言成功！预期：{}'.format(self.temp_dict)
 
+        self.back_to_system()
         self.__write_excel(flag, msg=msg)
         return flag
 
@@ -475,3 +500,32 @@ class AppiumUI:
             return True
         else:
             return False
+
+    def back_to_home_screen(self, times='3'):
+        """
+        回退带设备待机界面
+        :param times: 回退次数，没退出一个界面，次数减1
+        :return:
+        """
+        for i in range(0, times):
+            self.sleep(0.2)
+            self.driver.back()
+        return True
+
+    def back_to_system(self, locator='//*[@text="系统管理"]'):
+        """
+        界面回退包含locator定位元素的界面
+        :param locator:
+        :return:
+        """
+        while True:
+            el = self.__find_element(locator)
+            if el is not None:
+                # print('**************找到 系统管理 ***************')
+                self.__write_excel(True)
+                break
+            else:
+                # print('************** 回退 ***************')
+                self.driver.back()
+                self.__write_excel(False)
+        return True
