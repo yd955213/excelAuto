@@ -9,7 +9,7 @@
 @ToDo    :  对执行后的用例结果进行汇总分析
 """
 import global_variables
-from common.excel_tool import ExcelTool
+from dao.excel.excel_tool import ExcelTool
 from global_variables import cell_config, get_abspath, email_config
 
 
@@ -22,7 +22,6 @@ class SummeryReport:
         # 分组信息: group_name, group_case_count, pass_count, status
         self.group_info = []
         self.excel = ExcelTool(file_path)
-        # self.excel.open_excel(get_abspath(file_path))
         self.sheets = self.excel.get_sheet_names()
 
     def get_summery_info(self, ):

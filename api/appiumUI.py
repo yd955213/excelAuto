@@ -11,9 +11,7 @@
 import os
 import threading
 import time
-import traceback
-
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import expected_conditions as ec
 from appium.webdriver.common.mobileby import MobileBy as By
 from appium import webdriver
 from appium.webdriver.common.touch_action import TouchAction
@@ -22,16 +20,21 @@ from common import type_judgment
 from common.logger import logger
 from common.my_color import MyColor
 from common.read_xml import ReadSetInfo
-from global_variables import ui_cell_config, get_abspath
+from dao.excel.excel_config import ExcelConfig
+from global_variables import get_abspath
 
 
 def _get_value(value='None', is_select=False):
+    false_list = ['关闭', '自动', '限识别区域', '反序', 'false']
+    true_list = ['打开', '一周', '不限识别区域', '常开', '正序', 'true']
+    zero_list = ['一天', '常关', '设备不支持', '卡号']
+    value = value.lower()
     if not is_number(value):
-        if value == '关闭' or value == '自动' or value == '限识别区域' or value == '反序' or value.lower() == 'false':
+        if false_list.__contains__(value):
             value = '2 or False'
-        elif value == '打开' or value == '一周' or value == '不限识别区域' or value == '常开' or value == '正序' or value.lower() == 'true':
+        elif true_list.__contains__(value):
             value = '1 or True'
-        elif value == '一天' or value == '常关' or value == '设备不支持' or value == '卡号':
+        elif zero_list.__contains__(value):
             value = '0'
         elif value == '人脸框':
             value = 'rect'
@@ -77,8 +80,6 @@ class AppiumUI:
     """
 
     def __init__(self):
-        # driver = webdriver.Remote('http://127.0.0.1:4723/wd/hub', appium_config)
-        # driver.implicitly_wait(10)
         self.driver = None
         self.port = None
         self.excel = None
@@ -103,7 +104,8 @@ class AppiumUI:
         th.start()
         time.sleep(5)
 
-    def stop_appium(self, port='4723'):
+    @classmethod
+    def stop_appium(cls, port='4723'):
         """
         停止appium服务
         :param port: 需要停止的appium的端口号
@@ -119,7 +121,7 @@ class AppiumUI:
         else:
             print('端口未占用')
 
-    def startapp(self, conf='{}', t='10'):
+    def startapp(self, conf={}, t='10'):
         """
         启动APP
         :param conf: 连接appium，启动APP的配置，json格式字符串
@@ -137,10 +139,8 @@ class AppiumUI:
         :param t: 启动APP需要等待的时间
         :return:
         """
-        # conf = str(conf).replace('\n', '')
-        # conf = json.loads(conf)
         self.driver = webdriver.Remote("http://localhost:{}/wd/hub".format(self.port), conf)
-        self.driver.implicitly_wait(5)
+        self.driver.implicitly_wait(15)
         time.sleep(float(t))
 
     def __find_element(self, locator="None"):
@@ -173,7 +173,8 @@ class AppiumUI:
 
         return element
 
-    def sleep(self, t='1.0'):
+    @classmethod
+    def sleep(cls, t='1.0'):
         try:
             time.sleep(float(t))
         except:
@@ -192,7 +193,7 @@ class AppiumUI:
         el = self.__find_element(locator)
         if el is not None:
             self.__write_excel(True)
-            touchAction.long_press(el, t * 1000).perform()
+            touchAction.long_press(el, int(t) * 1000).perform()
             return True
         else:
             return False
@@ -234,11 +235,12 @@ class AppiumUI:
         else:
             return False
 
-    def swipe(self, location1="(1,1)", location2="(100,100)", t="1"):
+    def swipe(self, location1="(1,1)", location2="(1,100)", t="1"):
         """
         滑动
         :param location1: 第一个坐标的起始位置，格式为（x1,y1）
         :param location2: 第二个坐标的起始位置，格式为（x2,y2）
+        :param t: 默认等待1s
         :return:
         """
         self.sleep(t)
@@ -327,17 +329,24 @@ class AppiumUI:
                 return False
 
     def assert_toast(self, locator='None', value='None'):
+        """
+        显示等待，查找toast弹窗信息，
+        :param locator:
+        :param value:
+        :return:
+        """
         try:
             # 显示等待
             WebDriverWait(self.driver, timeout=5, poll_frequency=0.2).until(
-                EC.presence_of_element_located((By.XPATH, locator)))
+                ec.presence_of_element_located((By.XPATH, locator)))
             self.__write_excel(True, '断言成功，预期toast弹框提示：{}，实际：toast弹窗可以找的'.format(value))
             return True
         except Exception as e:
             self.__write_excel(False, '断言失败，预期toast弹框提示：{}，实际：未定位到元素，错误信息：{}'.format(value, e.__str__()))
             return False
 
-    def __get_set_info(self, file_name='SetInfo.xml'):
+    @classmethod
+    def __get_set_info(cls, file_name='SetInfo.xml'):
         """
         获取app的系统设置的配置文件，当配置文件发生变化时，需要修改路径： data/data/com.das.face/shared_prefs
         :param file_name: 默认对去文件：SetInfo.xml
@@ -350,14 +359,21 @@ class AppiumUI:
         os.system(r'adb pull data/data/com.das.face/shared_prefs/{} {}'.format(file_name, get_abspath('config/')))
         return ReadSetInfo(file_name).get_setInfo()
 
-    def exit_screen_saver(self):
+    def exit_screen_saver(self, x='100', y='100'):
         """
-        退出屏幕保护；在屏幕位置之中点击一下
+        退出屏幕保护；在屏幕任意位置之中点击一下
         :return:
         """
-        self.sleep(0.1)
+        self.sleep('0.1')
+        try:
+            x = float(x)
+            y = float(y)
+        except:
+            x = 100
+            y = 100
+
         touchAction = TouchAction(self.driver)
-        touchAction.tap(x=100, y=100).release().perform()
+        touchAction.tap(x=x, y=y).release().perform()
         self.__write_excel(True)
         return True
 
@@ -375,12 +391,16 @@ class AppiumUI:
         :param dsc: 备注信息
         :return: 无
         """
+        self.excel.set_sheet(self.sheet_name)
         if status is True:
-            self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('status'), "PASS", fg_color=MyColor.WHITE)
+            self.excel.write(self.excel_write_row, ExcelConfig.getXlsxColumn(ExcelConfig.STATUS),
+                             "PASS", fg_color=MyColor.WHITE)
         elif status is False:
-            self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('status'), "FAIL", fg_color=MyColor.RED)
+            self.excel.write(self.excel_write_row, ExcelConfig.getXlsxColumn(ExcelConfig.STATUS),
+                             "FAIL", fg_color=MyColor.RED)
         else:
-            self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('status'), str(status), fg_color=MyColor.RED)
+            self.excel.write(self.excel_write_row, ExcelConfig.getXlsxColumn(ExcelConfig.STATUS),
+                             str(status), fg_color=MyColor.RED)
 
         if not type_judgment.is_Null(msg):
             # 有时候实际结果过长，我们就只保存前30000个字符
@@ -388,22 +408,27 @@ class AppiumUI:
             # if len(msg) > 30000:
             #     msg = msg[0:30000]
             try:
-                self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('result'), str(msg))
+                self.excel.write(self.excel_write_row, ExcelConfig.getXlsxColumn(ExcelConfig.RESULT),
+                                 msg)
             except Exception as e:
                 logger.exception(e)
-                self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('describe'), str(e),
+                self.excel.write(self.excel_write_row, ExcelConfig.getXlsxColumn(ExcelConfig.DESCRIBE),
+                                 str(e),
                                  color=MyColor.RED)
 
         if not type_judgment.is_Null(dsc):
             try:
-                self.excel.set_sheet(self.sheet_name)
-                logger.debug('read_cell = ({}, {})'.format(self.excel_write_row, ui_cell_config.get('describe')))
-                dsc = str(dsc) + self.excel.read_cell(self.excel_write_row, ui_cell_config.get('describe'))
+                logger.debug('read_cell = ({}, {})'.format(self.excel_write_row,
+                                                           ExcelConfig.getXlsxColumn(ExcelConfig.DESCRIBE)))
+                dsc = str(dsc) + self.excel.read_cell(self.excel_write_row,
+                                                      ExcelConfig.getXlsxColumn(ExcelConfig.DESCRIBE))
             except Exception as e:
                 logger.exception(e)
-            self.excel.write(self.sheet_name, self.excel_write_row, ui_cell_config.get('describe'), str(dsc), color=MyColor.RED)
+            self.excel.write(self.excel_write_row, ExcelConfig.getXlsxColumn(ExcelConfig.DESCRIBE),
+                             str(dsc), color=MyColor.RED)
 
-    def get_element_text(self, locator='None'):
+    def get_element_text(self, locator='None', t='1'):
+        self.sleep(t)
         el = self.__find_element(locator)
         if el is not None:
             self.temp_str = el.text if not el.text == '' else str(el.is_selected())
@@ -449,7 +474,7 @@ class AppiumUI:
         4、再调用本方法，进行断言，
         :return:
         """
-        self.sleep(1)
+        self.sleep('1')
         config_dict = self.__get_set_info('SetInfo.xml')
         dic = self.__get_set_info('settingParam.xml')
         for key in dic.keys():
@@ -512,8 +537,8 @@ class AppiumUI:
         :param times: 回退次数，没退出一个界面，次数减1
         :return:
         """
-        for i in range(0, times):
-            self.sleep(0.2)
+        for i in range(0, int(times)):
+            self.sleep('0.2')
             self.driver.back()
         return True
 

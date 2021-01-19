@@ -19,35 +19,6 @@ except ImportError:
     import xml.etree.ElementTree as ET
 
 
-# class SetInfo(Enum):
-#     device_pwd = 'device_pwd'
-#     dailyRestartTime = 'dailyRestartTime'
-#     openDoorPassword = 'openDoorPassword'
-#     deviceName = 'deviceName'
-#     heartBeatInterval = 'heartBeatInterval'
-#     qrCodeSwitch = 'qrCodeSwitch'
-#     mainUIType = 'mainUIType'
-#     IsAuth = 'IsAuth'
-#     deviceMac = 'deviceMac'
-#     servicePort = 'servicePort'
-#     liveness_failed_count = 'liveness_failed_count'
-#     isNativeChangeParam = 'isNativeChangeParam'
-#     enableScreenSaver = 'enableScreenSaver'
-#     isSupportCard = 'isSupportCard'
-#     isDBNorma = 'isDBNorma'
-#     isAutoRestart = 'isAutoRestart'
-#     IsNotConfig = 'IsNotConfig'
-#     deviceTypeInt = 'deviceTypeInt'
-#     weiGenOut = 'weiGenOut'
-#     weiGenType = 'weiGenType'
-#     serviceIP = 'serviceIP'
-#     isUploadPassImg = 'isUploadPassImg'
-#     relayTime = 'relayTime'
-#     autoRebootTimeSpace = 'autoRebootTimeSpace'
-#     devicePort = 'devicePort'
-#     weiGenIn = 'weiGenIn'
-
-
 class ReadSetInfo:
     def __init__(self, file_name='SetInfo.xml'):
         self.tree_root = ET.ElementTree(file=get_abspath('config/{}'.format(file_name))).getroot()
@@ -67,36 +38,6 @@ class ReadSetInfo:
                     set_info[tree.get('name')] = tree.get('value')
                 # print(tree.get('name') + " = " + set_info[tree.get('name')])
         return set_info
-
-    def set_info_dict(self, key='None', value='None'):
-        if key == 'isAutoRestart':
-            value = 2 if value =='关闭' else 1
-        elif key == 'autoRebootTimeSpace':
-            value = 1 if value =='一周' else 0
-        elif key == 'vdailyRestartTime':
-            pass
-        elif key == 'qrCodeSwitch':
-            value = 2 if value =='关闭' else 1
-        elif key == 'mainUIType':
-            value = 1 if value =='人脸框' else 2
-        elif key == 'isSupportCard':
-            value = 2 if value =='关闭' else 1
-        elif key == 'enableScreenSaver':
-            value = 2 if value =='关闭' else 1
-        elif key == 'face_debug_info_flag':
-            value = 2 if value =='关闭' else 1
-        elif key == '':
-            value = 2 if value =='关闭' else 1
-        elif key == '':
-            value = 2 if value =='关闭' else 1
-        elif key == '':
-            value = 2 if value =='关闭' else 1
-        elif key == '':
-            value = 2 if value =='关闭' else 1
-        elif key == '':
-            value = 2 if value =='关闭' else 1
-
-        self.set_info[key] = value
 
 
 if __name__ == '__main__':

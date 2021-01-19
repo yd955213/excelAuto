@@ -16,10 +16,12 @@ from openpyxl.styles import Font, PatternFill
 from common import type_judgment
 from common.logger import logger
 from common.my_color import MyColor
-from global_variables import get_abspath, cell_config, ui_cell_config
+from dao.excel.excel_config import ExcelConfig
+from global_variables import get_abspath, cell_config
 
 
 class ExcelTool:
+    __is_run_list = ['是', 'yes', 'y']
 
     def __init__(self, file_path):
         self.file_path = get_abspath(file_path)
@@ -102,7 +104,7 @@ class ExcelTool:
                     line.append(str(self.sheet.cell(row, j).value).replace('\n', ''))
         return line
 
-    def write(self, sheet_name, row=1, column=1, value='', color=MyColor.BlACK, fg_color=MyColor.WHITE):
+    def write(self, row=1, column=1, value='', color=MyColor.BlACK, fg_color=MyColor.WHITE):
         """
         按行列写入对应的excel对的cell,写完后记得保存
         :param sheet_name: 需要写的sheet页
@@ -116,8 +118,6 @@ class ExcelTool:
         row = int(row)
         column = int(column)
         if row > 0 and column > 0:
-            # self.set_sheet(sheet_name)
-            self.sheet = self.workbook[sheet_name]
             try:
                 cell = self.sheet.cell(row=row, column=column, value=value)
                 font = Font(name='Arial',
@@ -155,35 +155,47 @@ class ExcelTool:
             li = []
             case = []
             for i in range(2, self.row + 1):
-                if i == 2:
-                    li.append(self.read_cell(i, ui_cell_config.get('id')))
-                    li.append(self.read_cell(i, ui_cell_config.get('group')))
-                    li.append(self.read_cell(i, ui_cell_config.get('case_name')))
-                    li.append(self.read_cell(i, ui_cell_config.get('case_describe')))
+                excel_column_id = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.ID)).lower()
+                excel_column_group = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.GROUP)).lower()
+                excel_column_case_name = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.CASE_NAME)).lower()
+                excel_column_case_describe = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.CASE_DESCRIBE)).lower()
+                excel_column_case_step = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.CASE_STEP)).lower()
+                excel_column_method = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.METHOD)).lower()
+                excel_column_expect_param1 = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.PARAMETER_1)).lower()
+                excel_column_expect_param2 = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.PARAMETER_2)).lower()
+                excel_column_expect_param3 = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.PARAMETER_3)).lower()
+                excel_column_describe = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.DESCRIBE)).lower()
+                excel_column_is_run = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.IS_RUN)).lower()
 
-                elif not type_judgment.is_Null(self.read_cell(i, ui_cell_config.get('id'))) \
-                        and type_judgment.is_Null(self.read_cell(i, ui_cell_config.get('method'))):
+                if i == 2:
+                    li.append(excel_column_id)
+                    li.append(excel_column_group)
+                    li.append(excel_column_case_name)
+                    li.append(excel_column_case_describe)
+
+                elif not type_judgment.is_Null(excel_column_id) and type_judgment.is_Null(excel_column_method):
                     if len(case) > 0:
                         li.append(case)
                         cases.append(li)
-                        li = []
-                        case = []
+                    li = []
+                    case = []
+                    li.append(excel_column_id)
+                    li.append(excel_column_group)
+                    li.append(excel_column_case_name)
+                    li.append(excel_column_case_describe)
 
-                    li.append(self.read_cell(i, ui_cell_config.get('id')))
-                    li.append(self.read_cell(i, ui_cell_config.get('group')))
-                    li.append(self.read_cell(i, ui_cell_config.get('case_name')))
-                    li.append(self.read_cell(i, ui_cell_config.get('case_describe')))
-
-                elif not type_judgment.is_Null(self.read_cell(i, ui_cell_config.get('method'))):
-                    is_run = self.read_cell(i, ui_cell_config.get('is_run')).lower()
-                    if is_run == '是' or is_run == 'yes' or is_run == 'y':
+                elif not type_judgment.is_Null(excel_column_method):
+                    if self.__is_run_list.__contains__(excel_column_is_run):
                         step_list = []
-                        step_list.append(self.read_cell(i, ui_cell_config.get('case_step')))
-                        step_list.append(self.read_cell(i, ui_cell_config.get('method')))
-                        step_list.append(self.read_cell(i, ui_cell_config.get('expect_param1')))
-                        step_list.append(self.read_cell(i, ui_cell_config.get('expect_param2')))
-                        step_list.append(self.read_cell(i, ui_cell_config.get('expect_param3')))
-                        step_list.append(self.read_cell(i, ui_cell_config.get('describe')))
+                        # 修改step_list的append顺序时，需要对应修改excel_config.py的CaseStep类的静态变量的对应值
+                        # 顺序如下：
+                        # 测试步骤、关键字、输入1、输入2、输入3、备注、行、sheet页
+                        step_list.append(excel_column_case_step)
+                        step_list.append(excel_column_method)
+                        step_list.append(excel_column_expect_param1)
+                        step_list.append(excel_column_expect_param2)
+                        step_list.append(excel_column_expect_param3)
+                        step_list.append(excel_column_describe)
                         step_list.append(i)
                         step_list.append(sheet)
                         # print('step =', step_list)
@@ -214,13 +226,44 @@ class ExcelTool:
             value = str(value).replace('\n', '').replace(' ', '').replace('\\', '')
         return value
 
+    def write_result(self, status, row, column, value):
+        """
+        将执行结果写Excel表，status = False时，用例Excel的执行状态一列填充色为红色，字体颜色为黑色，用例Excel的其他列填充色为白色，
+        字体颜色为红色，status = True，用例Excel的执行状态一列填充色为绿色，字体颜色为黑色，用例Excel的其他列填充色为白色，
+        字体颜色为黑色，
+        :param status: True or False
+        :param row: 行
+        :param column: 列
+        :param value: 值
+        :return:
+        """
+        if status:
+            color = MyColor.BlACK
+            if column == ExcelConfig.getXlsxColumn(ExcelConfig.STATUS):
+                fg_color = MyColor.GREEN
+            else:
+                fg_color = MyColor.WHITE
+        else:
+            if column == ExcelConfig.getXlsxColumn(ExcelConfig.STATUS):
+                color = MyColor.BlACK
+                fg_color = MyColor.RED
+            else:
+                color = MyColor.RED
+                fg_color = MyColor.WHITE
+
+        self.write(row=row, column=column, value=value, color=color, fg_color=fg_color)
+
 
 if __name__ == '__main__':
-    # e = ExcelTool(get_abspath('data/cases/UI自动化测试用例.xlsx'))
-    e = ExcelTool(get_abspath('data/cases/test.xlsx'))
-    # e.set_sheet(e.get_sheet_names()[0])
-    e.write(e.get_sheet_names()[0], 5, 5, '哈哈', MyColor.BlACK, MyColor.RED)
-    e.write(e.get_sheet_names()[0], 5, 7, '哈哈123', MyColor.BlACK, MyColor.GREEN)
-    e.write(e.get_sheet_names()[0], 6, 5, '哈哈', MyColor.BlACK, MyColor.RED)
-    e.write(e.get_sheet_names()[0], 6, 7, '哈哈123', MyColor.BlACK, MyColor.GREEN)
-    e.save()
+    e = ExcelTool(get_abspath('data/cases/UI自动化测试用例.xlsx'))
+    list1 = e.read_ui_excel()
+    for li in list1:
+        print(li)
+    # 写人测试
+    # e = ExcelTool(get_abspath('data/cases/test.xlsx'))
+    # # e.set_sheet(e.get_sheet_names()[0])
+    # e.write(e.get_sheet_names()[0], 5, 5, '哈哈', MyColor.BlACK, MyColor.RED)
+    # e.write(e.get_sheet_names()[0], 5, 7, '哈哈123', MyColor.BlACK, MyColor.GREEN)
+    # e.write(e.get_sheet_names()[0], 6, 5, '哈哈', MyColor.BlACK, MyColor.RED)
+    # e.write(e.get_sheet_names()[0], 6, 7, '哈哈123', MyColor.BlACK, MyColor.GREEN)
+    # e.save()

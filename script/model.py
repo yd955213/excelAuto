@@ -13,7 +13,7 @@ import pytest
 import common.my_assert as obj
 from api.inter import Inter
 from common import type_judgment
-from common.excel_tool import ExcelTool
+from dao.excel.excel_tool import ExcelTool
 from common.logger import logger
 from common.my_color import MyColor
 from global_variables import get_abspath, cell_config, host_dev

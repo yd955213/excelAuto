@@ -14,7 +14,7 @@ import allure
 import pytest
 import common.my_assert as obj
 from api.inter import Inter
-from common.excel_tool import ExcelTool
+from dao.excel.excel_tool import ExcelTool
 from common.logger import logger
 from global_variables import get_abspath, host_dev, cell_config
 

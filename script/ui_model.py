@@ -10,10 +10,10 @@
 """
 import allure
 from api.appiumUI import AppiumUI as AppiumUI
-from common.excel_tool import ExcelTool
+from dao.excel.excel_config import ExcelConfig, CaseStep
+from dao.excel.excel_tool import ExcelTool
 from common.logger import logger
-from common.my_color import MyColor
-from global_variables import get_abspath, ui_cell_config
+from global_variables import get_abspath
 
 
 class UiModel:
@@ -31,23 +31,23 @@ class UiModel:
 
     def run_case(self, cases):
         # logger.info(cases)
-        allure.dynamic.feature(cases[ui_cell_config.get('group') - 1])
-        allure.dynamic.title(cases[ui_cell_config.get('id') - 1] + '--' + cases[ui_cell_config.get('case_name') - 1])
+        allure.dynamic.feature(cases[ExcelConfig.GROUP])
+        allure.dynamic.title(cases[ExcelConfig.ID] + '--' + cases[ExcelConfig.CASE_NAME])
         # allure 用例描述
-        allure.dynamic.description(
-            cases[ui_cell_config.get('case_name') - 1] + '，' + cases[ui_cell_config.get('case_describe') - 1]
-        )
+        allure.dynamic.description(cases[ExcelConfig.CASE_NAME] + '，' + cases[ExcelConfig.CASE_DESCRIBE])
+        # 每一个用例的测试步骤
         cases = cases[-1]
         num = 0
         run_cases_success = True
         fail_msg = ""
+        fun = None
         for case in cases:
             # 测试开始
             logger.debug(case)
             num = num + 1
-            key_word = case[1]
-            self.row = case[-2]
-            self.sheet_name = case[-1]
+            key_word = case[CaseStep.method]
+            self.row = case[CaseStep.excel_row]
+            self.sheet_name = case[CaseStep.excel_sheet]
             self.key_ui.set_sheet_name(self.sheet_name)
             self.key_ui.excel_write_row = self.row
             is_ok = True
@@ -58,25 +58,22 @@ class UiModel:
                 is_ok = False
                 logger.exception(e)
                 logger.error(e)
-                self.__write_excel(False, column=ui_cell_config.get('status'), value='FAIL')
-                self.__write_excel(False, column=ui_cell_config.get('describe'), value='后台不支持该关键字！！{}'
-                                   .format(e.__str__()))
-                assert False
+                self.excel.write_result(False, row=self.row, column=ExcelConfig.getXlsxColumn(ExcelConfig.STATUS),
+                                        value='FAIL')
+                self.excel.write_result(False, row=self.row, column=ExcelConfig.getXlsxColumn(ExcelConfig.DESCRIBE),
+                                        value='后台不支持该关键字！！{}'.format(e.__str__()))
+                fail_msg += '步骤：{}，关键字：{}，错误原因：后台不支持该关键字；'.format(case[CaseStep.step_name], key_word)
             # 获取参数
-            params = case[2:5]
+            params = case[CaseStep.parameter1:CaseStep.describe]
             try:
-                # params[:params.index('')] 会过滤 ’‘字段，这里定义，excel文档中要输入''时，使用字符串'null'代替,这里做转换
                 params = params[:params.index('')]
-                # for i in range(0, params.__len__()):
-                #     if params[i].lower() == 'null':
-                #         params[i] = ''
             except Exception as e:
                 logger.exception(e)
                 # pass
             # 执行关键字函数
             try:
                 if fun is not None:
-                    with allure.step('{}、{}'.format(num, case[0])):
+                    with allure.step('{}、{}'.format(num, case[CaseStep.step_name])):
                         print('params =', params)
                         status = fun(*params)
                         if not status:
@@ -85,57 +82,16 @@ class UiModel:
             except Exception as e:
                 is_ok = False
                 logger.exception(e)
-                self.__write_excel(status=False, column=ui_cell_config.get('status'), value='FAIL')
-                self.__write_excel(status=False, column=ui_cell_config.get('describe'), value='参数输入错误!!! {}'
-                                   .format(e.__str__()))
-
-            # logger.debug("is_ok = {}".format(is_ok))
-            # if key_word.__contains__('assert'):
-            #     allure.attach(self.key_ui.driver.get_screenshot_as_png(), '断言截图', allure.attachment_type.PNG)
+                self.excel.write_result(status=False, row=self.row,
+                                        column=ExcelConfig.getXlsxColumn(ExcelConfig.STATUS), value='FAIL')
+                self.excel.write_result(status=False, row=self.row,
+                                        column=ExcelConfig.getXlsxColumn(ExcelConfig.DESCRIBE),
+                                        value='参数输入错误!!! {}'.format(e.__str__()))
 
             if not is_ok:
                 run_cases_success = False
-                fail_msg = fail_msg + '步骤：{}，关键字：{}，参数值：{}；'.format(case[0], key_word, params)
+                fail_msg = fail_msg + '步骤：{}，关键字：{}，参数值：{}；'.format(case[CaseStep.step_name], key_word, params)
                 allure.attach(self.key_ui.driver.get_screenshot_as_png(), '步骤（{}）测试失败截图'
-                              .format(case[0]), allure.attachment_type.PNG)
+                              .format(case[CaseStep.step_name]), allure.attachment_type.PNG)
         else:
             assert run_cases_success, '测试失败:{}'.format(fail_msg)
-
-    def __write_excel(self, status, column, value):
-        if status:
-            color = MyColor.BlACK
-            if column == ui_cell_config.get('status'):
-                fg_color = MyColor.GREEN
-            else:
-                fg_color = MyColor.WHITE
-        else:
-            if column == ui_cell_config.get('status'):
-                color = MyColor.BlACK
-                fg_color = MyColor.RED
-            else:
-                color = MyColor.RED
-                fg_color = MyColor.WHITE
-
-        self.excel.write(sheet_name=self.sheet_name,
-                         row=self.row,
-                         column=column,
-                         value=value,
-                         color=color,
-                         fg_color=fg_color)
-
-
-# if __name__ == '__main__':
-#     u = UiModel('data/cases/test.xlsx')
-#     u.row = 8
-#     u.sheet_name = u.excel.get_sheet_names()[0]
-#     u.write_excel(True, 8, 'test123')
-#     u.row = 9
-#     u.write_excel(False, 8, 'test123')
-#     u.row = 10
-#     u.write_excel(True, 12, 'test123')
-#     u.row = 11
-#     u.write_excel(True, ui_cell_config.get('status'), 'test123')
-#     u.row = 12
-#     u.write_excel(False, ui_cell_config.get('status'), 'test123')
-#     u.excel.save()
-

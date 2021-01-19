@@ -24,8 +24,6 @@ class Test_361_Ui:
     cases = []
 
     def setup_class(self):
-        # self.model = UiModel()
-        print('测试开始**************************************************')
         self.model.key_ui.start_appium(r'C:\Users\yangdang\AppData\Local\Programs\Appium')
         self.model.key_ui.startapp(appium_config)
 
@@ -34,7 +32,6 @@ class Test_361_Ui:
         self.model.key_ui.quit()
         self.model.key_ui.sleep(1)
         self.model.key_ui.stop_appium()
-        print('测试结束**********************************************************')
 
     def teardown(self):
         self.model.excel.save()
