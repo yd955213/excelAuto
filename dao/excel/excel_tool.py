@@ -155,17 +155,17 @@ class ExcelTool:
             li = []
             case = []
             for i in range(2, self.row + 1):
-                excel_column_id = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.ID)).lower()
-                excel_column_group = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.GROUP)).lower()
-                excel_column_case_name = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.CASE_NAME)).lower()
-                excel_column_case_describe = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.CASE_DESCRIBE)).lower()
-                excel_column_case_step = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.CASE_STEP)).lower()
+                excel_column_id = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.ID))
+                excel_column_group = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.GROUP))
+                excel_column_case_name = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.CASE_NAME))
+                excel_column_case_describe = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.CASE_DESCRIBE))
+                excel_column_case_step = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.CASE_STEP))
                 excel_column_method = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.METHOD)).lower()
-                excel_column_expect_param1 = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.PARAMETER_1)).lower()
-                excel_column_expect_param2 = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.PARAMETER_2)).lower()
-                excel_column_expect_param3 = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.PARAMETER_3)).lower()
-                excel_column_describe = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.DESCRIBE)).lower()
-                excel_column_is_run = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.IS_RUN)).lower()
+                excel_column_expect_param1 = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.PARAMETER_1))
+                excel_column_expect_param2 = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.PARAMETER_2))
+                excel_column_expect_param3 = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.PARAMETER_3))
+                excel_column_describe = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.DESCRIBE))
+                excel_column_is_run = self.read_cell(i, ExcelConfig.getXlsxColumn(ExcelConfig.IS_RUN))
 
                 if i == 2:
                     li.append(excel_column_id)
@@ -185,7 +185,7 @@ class ExcelTool:
                     li.append(excel_column_case_describe)
 
                 elif not type_judgment.is_Null(excel_column_method):
-                    if self.__is_run_list.__contains__(excel_column_is_run):
+                    if self.__is_run_list.__contains__(excel_column_is_run.lower()):
                         step_list = []
                         # 修改step_list的append顺序时，需要对应修改excel_config.py的CaseStep类的静态变量的对应值
                         # 顺序如下：

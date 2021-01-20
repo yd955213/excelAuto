@@ -193,7 +193,12 @@ class AppiumUI:
         el = self.__find_element(locator)
         if el is not None:
             self.__write_excel(True)
-            touchAction.long_press(el, int(t) * 1000).perform()
+            try:
+                touchAction.long_press(el, int(float(t)) * 1000).perform()
+            except Exception as e:
+                self.__write_excel(False, e.__str__())
+                return False
+
             return True
         else:
             return False
@@ -385,7 +390,7 @@ class AppiumUI:
 
     def __write_excel(self, status=False, msg='', dsc=''):
         """
-        写入关键字运行结果
+        写入关键字运行结果，msg='', dsc='' 或者为None 时 不写Excel对应的列
         :param status: 运行的状态
         :param msg: 实际运行结果
         :param dsc: 备注信息
@@ -552,7 +557,7 @@ class AppiumUI:
             el = self.__find_element(locator)
             if el is not None:
                 # __find_element 未找到元素时，会在 dsc 栏写异常信息，这里循环查找到后，清除异常信息
-                self.__write_excel(True, dsc='')
+                self.__write_excel(True, dsc='回退成功')
                 break
             else:
                 self.driver.back()

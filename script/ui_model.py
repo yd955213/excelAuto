@@ -66,7 +66,8 @@ class UiModel:
             # 获取参数
             params = case[CaseStep.parameter1:CaseStep.describe]
             try:
-                params = params[:params.index('')]
+                if params.__contains__(''):
+                    params = params[:params.index('')]
             except Exception as e:
                 logger.exception(e)
                 # pass
